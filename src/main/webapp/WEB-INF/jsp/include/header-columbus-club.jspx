@@ -1,0 +1,10 @@
+<div xmlns:c="http://java.sun.com/jsp/jstl/core"
+   xmlns:spring="http://www.springframework.org/tags" 
+   xmlns:jsp="http://java.sun.com/JSP/Page" 
+   class="logo-header-columbus-club subhead-columbus-club" id="subhead">
+   <div class="container logo-holder-columbus-club">
+	   <header>
+		  <jsp:text></jsp:text>
+	   </header>
+   </div>
+</div>

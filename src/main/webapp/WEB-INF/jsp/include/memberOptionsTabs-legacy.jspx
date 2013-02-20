@@ -1,0 +1,43 @@
+<div xmlns:c="http://java.sun.com/jsp/jstl/core"
+   class="member-tab-form">
+   
+	<ul id="rateTabs" class="nav nav-tabs">
+	   <li><a href="#nonmember" data-toggle="tab">Non-Member Regular</a></li>
+	   <li><a href="#swimteam" data-toggle="tab">Non-Member Swim-Team</a></li>
+	   <li><a href="#member" data-toggle="tab">Knights of Columbus Council EDW 2473</a></li>
+	</ul>
+	<div id="rateTabsContent" class="tab-content">
+	   <div id="nonmember" class="tab-pane fade in active">
+	      <p>All members of the public are eligible to join the pool at the regular non-member rate.</p>
+	      <label class="radio">
+	        <input type="radio" name="memberOption" id="memberOptionNonMember" value="memberOptionNonMember" ></input>
+	        Select this option to apply for regular pool membership.
+	      </label>
+	   </div>
+	   <div id="swimteam" class="tab-pane fade">
+	      <p>If you or a family member is already a paying member of the swim team and are not eligible for the Knights of Columbus, EDW 2473 Council membership, 
+	      you are eligible to join the pool for the 2013 seasion at the discounted swim team rate.</p>
+	      <p>Please provide the name of the family member belonging to the swim team for verification by the swim team captain</p>
+	      <div class="controls controls-row">
+	         <div>
+	            <label class="radio">
+	               <input type="radio" name="memberOption" id="memberOptionSwimTeam" value="memberOptionSwimTeam"></input>
+	               Select this option to apply for pool membership as a swim team member.
+	            </label>
+	         </div>
+	         <input id="swimTeamName" type="text" class="span4" placeholder="Full Name" title="Swim Team Member Full Name" ></input>
+	      </div>
+	   </div>
+	   <div id="member" class="tab-pane fade">
+	      <p>If you are an active member in good standing of the Knights of Columbus, EDW 2473 Council you are eligible to apply as a member.</p>
+	      <p>Please select the option below and provide your member number for verification by the Knights Council.</p>
+	     <div>
+	         <label class="radio">
+	            <input type="radio" name="memberOption" id="memberOptionMember" value="memberOptionMember"></input>
+	            Select this option to apply for pool membership as a Knights of Columbus, EDW 2473 Council member.
+	         </label>
+	      </div>
+	      <input id="memberNumber" type="text" class="span4" placeholder="Member Number" title="Knights of Columbus, EDW 2473 Council Member Number" ></input>
+	   </div>
+	</div>
+</div>

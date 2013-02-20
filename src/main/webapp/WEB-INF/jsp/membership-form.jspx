@@ -1,0 +1,93 @@
+<html xmlns:c="http://java.sun.com/jsp/jstl/core"  
+   xmlns:spring="http://www.springframework.org/tags" 
+   xmlns:jsp="http://java.sun.com/JSP/Page" 
+   xmlns:tags="urn:jsptagdir:/WEB-INF/tags" >
+   
+   <jsp:output doctype-root-element="HTML" doctype-system="about:legacy-compat" />
+   <jsp:directive.page contentType="text/html;charset=UTF-8" />
+   <head>  
+      <tags:header headerTitle="Membership Form"></tags:header>
+      
+		<spring:url value="/add-new-member.json" var="formUrl" />
+		<spring:url value="/get-current-rates.json" var="currentRateUrl" />
+		<script type="text/javascript">
+		   var formUrl = '${formUrl}';
+		   var currentRateUrl = '${currentRateUrl}';
+		</script>
+      
+      <![CDATA[<script src="/js/membershipform.js"></script>]]>
+      <![CDATA[
+		<!-- HTML5 shim, for IE6-8 support of HTML5 elements, outside the taglib due to CDATA support -->
+		<!--[if lt IE 9]>
+		  <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+		<![endif]-->
+		]]>
+   </head>
+   <body class="body-blue">
+      <div class="page-wrapper">
+         <jsp:include page="include/header-kofc-pool.jspx"/>
+         <div class="container">
+            <div class="page-header">
+               <h1>Membership Application Form<br/><small>2013 Season, Knights of Columbus, Arlington Pool</small></h1>
+            </div>
+            <h3>Please Enter Your Information Below</h3>
+            <form class="application-form">
+               <legend>Name</legend>
+               <div class="controls controls-row">
+	               <input id="firstName"     type="text" class="span3" placeholder="First Name" title="First Name" ></input>
+	               <input id="middleInitial" type="text" class="span1" placeholder="MI" title="Middle Initial"></input>
+	               <input id="lastName"      type="text" class="span3" placeholder="Last Name" title="Last Name"></input>
+               </div>
+               <legend>Address</legend>
+               <input id="addressLine1"   type="text" class="span7" placeholder="Address Line 1" title="Address Line 1"></input>
+               <input id="addressLine2"   type="text" class="span7" placeholder="Address Line 2" title="Address Line 2"></input>
+               <div class="controls controls-row">
+                  <input id="city"     type="text" class="span3" placeholder="City" title="City"></input>
+                  <tags:stateSelector inputId="state" cssClass="span2" helpText="State"></tags:stateSelector>
+                  <input id="zip"   type="text" class="span2" placeholder="Zip Code" title="Zip Code"></input>
+               </div>
+               <legend>Contact Information</legend>
+               <div class="controls controls-row">
+                  <input id="primaryPhone"   type="text" class="span3" placeholder="Primary Phone" title="Primary Phone" ></input>
+                  <input id="secondaryPhone" type="text" class="span3" placeholder="Secondary Phone" title="Secondary Phone" ></input>
+               </div>
+               <div class="controls controls-row">
+                  <input id="email"    type="email"   class="span6" placeholder="Email" title="Email"></input>
+               </div>
+               <legend>Family Members</legend>
+               <table id="RelationTable" class="table table-hover">
+                  <thead>
+                     <tr>
+                        <th>First Name</th>
+                        <th>Last Name</th>
+                        <th>Relation <i id="relation-question" class="icon-question-sign" data-toggle="tooltip" title="When registering a family account, you can add all members of your household as dependents, as well as 1 caretaker or nanny."> </i></th>
+                     </tr>
+                  </thead>
+                  <tbody></tbody>
+               </table>
+               <button id="addRelationButton" class="btn" type="button">Add Row</button>
+               <legend>Membership Information</legend>
+               <p>Select Your Membership Option</p>
+               <jsp:include page="include/memberOptionsTabs.jspx"/>
+               <!-- <div class="member-tab-form">
+                  <ul id="rateTabs" class="nav nav-tabs"></ul>
+                  <div id="rateTabsContent" class="tab-content"></div>
+               </div>-->
+               <div class="form-bottom-spacer"><jsp:text> </jsp:text></div>
+               <div class="controls controls-row">
+                  <div class="span1 faux-label" for="finalCost">Total:</div>
+                  <input type="text" id="finalCost" placeholder="Cost" class="span3" disabled=""></input>
+               </div>
+               <div class="form-bottom-spacer"><jsp:text> </jsp:text></div>
+               <button class="btn btn-primary" type="button" id="submitButton">Submit</button>
+            </form>
+	         <tags:modal modalId="confirmDlg" titleElemId="confirmDlgTitle"
+	            titleText="Confirmation" bodyElemId="confirmDlgBody"
+	            closeAllowed="true" confirmElemId="confirmDlgOk" confirmText="Ok">This will submit your form for validation and redirect you to the payment options screen. No further changes in your membership options are allowed beyond this point. Are you sure you wish to continue?</tags:modal>
+	         <tags:modal modalId="responseDlg" titleElemId="responseDlgTitle"
+	            bodyElemId="responseDlgBody" closeAllowed="true"
+	            confirmElemId="responseDlgOk" confirmText="Ok">No Text</tags:modal>
+         </div>
+      </div>
+   </body>
+</html>

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<appengine-web-app xmlns="http://appengine.google.com/ns/1.0">
+	<application>kofcedw2473-pool</application>
+	<version>1</version>
+	<threadsafe>true</threadsafe>
+
+	<static-files>
+		<include path="/bootstrap/**" />
+		<include path="/img/**" />
+		<include path="/js/**" />
+		<include path="/style/**" />
+		<exclude path="/**.jspx" />
+	</static-files>
+
+	<resource-files>
+		<include path="/**.jspx" />
+	</resource-files>
+
+	<system-properties>
+		<property name="java.util.logging.config.file" value="WEB-INF/logging.properties" />
+	</system-properties>
+</appengine-web-app>

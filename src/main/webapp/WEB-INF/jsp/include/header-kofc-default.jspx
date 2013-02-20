@@ -1,0 +1,8 @@
+<div xmlns:c="http://java.sun.com/jsp/jstl/core"
+   xmlns:spring="http://www.springframework.org/tags" 
+   xmlns:jsp="http://java.sun.com/JSP/Page" 
+   class="logo-holder-container-default subhead-kofc" id="subhead">
+   <div class="logo-header-logomark-default"><!-- logomark --></div>
+   <div class="logo-header-logotext-default"><!-- logotext --></div>
+   <div class="logo-header-edwhite-default"><!-- white --></div>
+</div>

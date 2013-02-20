@@ -1,0 +1,8 @@
+<div xmlns:c="http://java.sun.com/jsp/jstl/core"
+   xmlns:spring="http://www.springframework.org/tags" 
+   xmlns:jsp="http://java.sun.com/JSP/Page" 
+   class="logo-holder-container-pool subhead-kofc" id="subhead">
+   
+   <img src="/img/kofc_logomark.gif" class="logo-header-logomark-pool"></img>
+   <img src="/img/christopher.gif" class="logo-header-columbus-pool"></img>
+</div>

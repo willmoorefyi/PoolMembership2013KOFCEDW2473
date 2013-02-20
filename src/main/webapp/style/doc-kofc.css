@@ -1,0 +1,137 @@
+.body-blue {
+	background: #005599;
+	height: 100%;
+}
+
+.page-wrapper {
+	background: #FFFFFF;
+	top: 5px;
+	bottom: 10px;
+	left: 12px;
+	right: 12px;
+	/*border: 2px solid #000000;*/
+	position: absolute;
+	box-shadow: -1px 2px 1px 1px #111111;
+	overflow: auto;
+}
+
+.page-footer {
+	position: absolute;
+	bottom: 0;
+	height: 10px;
+	left: 0;
+	right: 0;
+}
+
+.logo-holder-container-default {
+	background: url("/img/mast_bg.gif") repeat;
+	padding: 0 0 0 5px;
+   position: relative;
+   text-align: center;
+   top: 0;
+   bottom: 0;
+   left: 0;
+   right: 0;
+   margin: 0 auto;
+   height: 95px;
+}
+
+.logo-header-logomark-default {
+	background: url('/img/kofc_logomark.gif') no-repeat;
+	float: left;
+	width: 85px;
+	height: 85px;
+	margin-top: 5px;
+}
+
+.logo-header-logotext-default {
+   background: url('/img/kofc_logotext.gif') no-repeat;
+   float: left;
+   width: 263px;
+   height: 85px;
+   margin-top: 5px;
+}
+
+.logo-header-edwhite-default {
+   background: url('/img/ed_white.gif') no-repeat;
+   float: right;
+   width: 339px;
+   height: 95px;
+}
+
+.logo-holder-container-pool {
+   background: url("/img/mast_cc_bg.gif") repeat;
+   padding: 0 0 0 5px;
+   position: relative;
+   text-align: center;
+   top: 0;
+   bottom: 0;
+   left: 0;
+   right: 0;
+   margin: 0 auto;
+   height: 95px;
+   overflow: hidden;
+}
+
+.logo-header-logomark-pool {
+   float: left;
+   margin: 5px;
+}
+
+.logo-header-columbus-pool {
+   float: right;	
+}
+
+
+.subhead-kofc {
+   border-bottom: 2px solid #000000;
+   text-align: left;
+}
+
+.header-color-neutral {
+	background-color: rgb(212, 212, 212);
+}
+
+.application-form {
+	background-color: #FFFFFF;
+	border: 1px solid #DDDDDD;
+	border-radius: 4px 4px 4px 4px;
+	padding: 15px 10px 10px;
+}
+
+.member-rate-category-block {
+   border: 1px solid #DDDDDD;
+   border-radius: 4px 4px 4px 4px;
+   padding: 15px 10px 10px;
+}
+
+.member-opt-block {
+   border: 1px solid #DDDDDD;
+   border-radius: 4px 4px 4px 4px;
+   padding: 15px 10px 10px;
+}
+
+.icon-highlight-hover {
+	background-color: rgba(255,0,0,0.25);
+}
+
+.form-bottom-spacer {
+   border-bottom: 1px solid #EEEEEE;
+   margin: 20px 0px 30px;
+}
+
+.member-tab-form {
+	height: 200px;
+}
+
+.faux-label {
+	margin-top: 5px;
+}
+
+.row-spacer {
+	height: 12px;
+}
+
+.icon-remove-right {
+	float: right;
+}

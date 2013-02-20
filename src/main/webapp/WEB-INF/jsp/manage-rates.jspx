@@ -1,0 +1,54 @@
+<html xmlns:c="http://java.sun.com/jsp/jstl/core"
+	xmlns:spring="http://www.springframework.org/tags"
+	xmlns:jsp="http://java.sun.com/JSP/Page"
+	xmlns:tags="urn:jsptagdir:/WEB-INF/tags">
+
+<jsp:output doctype-root-element="HTML"
+	doctype-system="about:legacy-compat" />
+<jsp:directive.page contentType="text/html;charset=UTF-8" />
+<head>
+<tags:header headerTitle="Manage Rates"></tags:header>
+
+<spring:url value="/manage/manage-rates.json" var="formUrl" />
+<spring:url value="/manage/get-default-rate.json" var="currentRateUrl" />
+<script type="text/javascript">
+	var formUrl = '${formUrl}';
+	var currentRateUrl = '${currentRateUrl}';
+</script>
+
+<![CDATA[<script src="/js/manageRates.js"></script>]]>
+<![CDATA[
+      <!-- HTML5 shim, for IE6-8 support of HTML5 elements, outside the taglib due to CDATA support -->
+      <!--[if lt IE 9]>
+        <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+      <![endif]-->
+      ]]>
+</head>
+<body class="body-blue">
+	<div class="page-wrapper">
+		<jsp:include page="include/header-kofc-pool.jspx" />
+		<div class="container">
+			<div class="page-header">
+				<h1>Manage 2013 Rates</h1>
+			</div>
+			<form id="RateForm" class="form-horizontal application-form">
+			   <fieldset><jsp:text> </jsp:text></fieldset>
+		   </form>
+			<div class="row">
+				<div class="span2">
+					<button id="addRateButton" class="btn span2" type="button">Add Row</button>
+				</div>
+				<div class="offset1 span2">
+					<button id="submitButton" class="btn btn-primary span2" type="button">Submit</button>
+				</div>
+			</div>
+			<tags:modal modalId="confirmDlg" titleElemId="confirmDlgTitle"
+				titleText="Confirmation" bodyElemId="confirmDlgBody"
+				closeAllowed="true" confirmElemId="confirmDlgOk" confirmText="Ok">This will update the rates and rate options for anyone accessing the membership application form.  Are you sure you wish to continue?</tags:modal>
+			<tags:modal modalId="responseDlg" titleElemId="responseDlgTitle"
+				bodyElemId="responseDlgBody" closeAllowed="true"
+				confirmElemId="responseDlgOk" confirmText="Ok">No Text</tags:modal>
+		</div>
+	</div>
+</body>
+</html>

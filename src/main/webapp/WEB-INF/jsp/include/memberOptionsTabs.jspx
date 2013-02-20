@@ -1,0 +1,34 @@
+<div xmlns:c="http://java.sun.com/jsp/jstl/core"
+   xmlns:spring="http://www.springframework.org/tags" 
+   xmlns:jsp="http://java.sun.com/JSP/Page" 
+class="member-tab-form">
+ 
+	<ul id="rateTabs" class="nav nav-tabs">
+	  <c:forEach var="memberCategory" items="${membershipOptionsList.memberCategories}" varStatus="index">
+	     <li><a href="${'#category'}${index.count}" data-toggle="tab"><c:out value="${memberCategory.tabDescription}"/></a></li>
+	  </c:forEach>
+	</ul>
+   <div id="rateTabsContent" class="tab-content">
+      <c:forEach var="memberCategory" items="${membershipOptionsList.memberCategories}" varStatus="index">
+         <div id="${'category'}${index.count}" class="tab-pane fade ${index.count==1 ? 'in active': ''}">
+            <p><c:out value="${memberCategory.userDescription}"/></p>
+            <c:if test="${memberCategory.validationRequired }">
+               <p><c:out value="${memberCategory.validationText}"/></p>
+               <input id="${'input-category'}${index.count}" type="text" class="span4" 
+                  pattern="${not empty memberCategory.validationConstraint ? memberCategory.validationConstraint : '.*'}"
+                  title="${memberCategory.validationHint}" placeholder="${memberCategory.validationHint}"></input>
+            </c:if>
+            <div>
+               <c:forEach var="memberOpt" items="${memberCategory.memberOptions}" varStatus="j">
+                  <label class="radio">
+                     <c:set var="validationVal" value="${'input-category'}${index.count}" />
+                     <input type="radio" name="memberOption" id="${memberOpt.optionKey}" value="${memberOpt.optionKey}" 
+                        data-validation-input="${memberCategory.validationRequired  ? validationVal : ''}" data-cost="${memberOpt.cost}"></input>
+                     <c:out value="${memberOpt.optionLabel}"/>
+                  </label>
+               </c:forEach>
+            </div>
+         </div>
+      </c:forEach>
+   </div>
+</div>
