@@ -18,15 +18,16 @@ function addRelationTableRow() {
    $('#RelationTable > tbody:last').append($('<tr>')
       .append($('<td>')
          .append($('<input>')
-            .attr('id', 'relationFirstName' + totalRelations).attr('type', 'text').attr('placeholder', 'First Name').attr('title', 'First Name') 
+            .attr('id', 'relationFirstName' + totalRelations).attr('name', 'relationFirstName').attr('type', 'text').attr('placeholder', 'First Name').attr('title', 'First Name') 
          )
       ).append($('<td>')
          .append($('<input>')
-            .attr('id', 'relationLastName' + totalRelations).attr('type', 'text').attr('placeholder', 'Last Name').attr('title', 'Last Name') 
+            .attr('id', 'relationLastName' + totalRelations).attr('name', 'relationLastName').attr('type', 'text').attr('placeholder', 'Last Name').attr('title', 'Last Name') 
          )
       ).append($('<td>')
          .append($('<select>')
             .attr('id', 'relationType' + totalRelations)
+            .attr('name', 'relationType')
             .append('<option value="Spouse">Spouse</option>')
             .append('<option value="Child">Child</option>')
             .append('<option value="Parent">Parent / Grandparent</option>')
@@ -105,6 +106,53 @@ function confirmForm() {
  */
 function submitForm() {
 	$('#confirmDlg').modal('hide');
+
+	var formObj = { 'member' : {} };
+	//serialize all the simple objects
+	$('#application-form input:not(#RelationTable input, #rateTabsContent input)').each(function(index) {
+		formObj.member[$(this).attr('name')] = $(this).val();
+	});
+	$('application-form #RelationTable tbody tr').find('td').each(function(index) {
+		if(index == 0) {
+			formObj.member['dependent'] = [];
+		}
+		$(this).find('input, select').each(function(j) {
+			formObj.member.dependent[index][$(this).attr('name')] = $(this).val();
+		});
+	});
 	
+	$.ajax(formUrl, {
+		data: JSON.stringify(formObj),
+		contentType: 'application/json; charset=UTF-8',
+		dataType: 'json',
+	    type:'POST',
+		success: function(response) {
+			if (response.status == 'FAIL') {
+				$('#responseDlgTitle').text('Error');
+				$('#responseDlgBody').text('There were errors with your submission.');
+				$('#responseDlgOk').click(function() {
+					$('#responseDlg').modal('hide');
+				});
+				$('#responseDlg').modal('show');
+			}
+			else {
+				$('#responseDlgTitle').text('Success!');
+				$('#responseDlgBody').text('Your changes were successfully committed.');
+				$('#responseDlgOk').click(function() {
+					$('#responseDlg').modal('hide');
+				});
+				$('#responseDlg').modal('show');
+			}
+			
+		}, 
+		error: function(jqXHR, textStatus, errorThrown) {
+			$('#responseDlgTitle').text('Error');
+			$('#responseDlgBody').text('There were errors with your submission. Server Responded with ' + textStatus + ': ' + errorThrown);
+			$('#responseDlgOk').click(function() {
+				$('#responseDlg').modal('hide');
+			});
+			$('#responseDlg').modal('show');
+		}
+	});
 	return false;
 }

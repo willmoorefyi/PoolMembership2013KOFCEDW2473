@@ -20,11 +20,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import com.columbusclubevents.pool.membershipApplication.model.Member;
 import com.columbusclubevents.pool.membershipApplication.model.MembershipCategory;
 import com.columbusclubevents.pool.membershipApplication.model.MembershipOption;
 import com.columbusclubevents.pool.membershipApplication.model.MembershipOptionsList;
 import com.columbusclubevents.pool.membershipApplication.model.validation.ErrorMessage;
 import com.columbusclubevents.pool.membershipApplication.model.validation.ValidationResponse;
+import com.columbusclubevents.pool.membershipApplication.repository.MemberRepository;
 import com.columbusclubevents.pool.membershipApplication.repository.MembershipCategoryRepository;
 
 @Controller
@@ -33,6 +35,9 @@ public class ApplicationController {
 	
 	@Autowired
 	private MembershipCategoryRepository memberCategoryRepo;
+	
+	@Autowired
+	private MemberRepository memberRepo;
 
 	@RequestMapping(value="/applicationBootstrap",method=RequestMethod.GET)
 	public String bootstrapForm(Model model){
@@ -46,6 +51,25 @@ public class ApplicationController {
 		MembershipOptionsList options = getCurrentOptions();
 		model.addAttribute("membershipOptionsList", options);
 		return "membership-form";
+	}
+	
+	@RequestMapping(value="/submit-membership-form.json", method=RequestMethod.POST,consumes="application/json", produces="application/json")
+	public @ResponseBody ValidationResponse submitForm(Model model, @RequestBody @Valid Member member, BindingResult result) {
+		log.debug("Received POST request on submit-membership-form.json");
+		log.debug("Member returned: {}", member);
+		ValidationResponse res = new ValidationResponse();
+		if(result.hasErrors()){
+			log.debug("Validation errors on input member form");
+			res.setStatus("FAIL");
+			res.setErrorMessageList(processErrors(result));
+		}
+		else {
+			log.debug("Validation of member form succeeded!");
+			memberRepo.save(member);
+			res.setStatus("SUCCESS");
+		}
+
+		return res;
 	}
 	
 	@RequestMapping(value="/manage/manage-rates.htm",method= RequestMethod.GET)
@@ -62,14 +86,7 @@ public class ApplicationController {
 		if(result.hasErrors()){
 			log.debug("Validation errors encountered");
 			res.setStatus("FAIL");
-			List<FieldError> allErrors = result.getFieldErrors();
-			List<ErrorMessage> errorMesages = new ArrayList<ErrorMessage>();
-			for (FieldError objectError : allErrors) {
-				ErrorMessage error = new ErrorMessage(objectError.getField(), objectError.getField() + "  " + objectError.getDefaultMessage());
-				log.debug("Processed error: \"{}\" from object error \"{}\"", error, objectError);
-				errorMesages.add(error);
-			}
-			res.setErrorMessageList(errorMesages);
+			res.setErrorMessageList(processErrors(result));
 
 		} else {
 			log.debug("Validation succeeded");
@@ -107,6 +124,22 @@ public class ApplicationController {
 			options.add(cat);
 		}
 		return options;
+	}
+	
+	/**
+	 * Process the error messages that occur from the binding of the passed-in object to the Java object via JSR-303 validation
+	 * @param result The result of attemptipng to bind the passed-in string to a Java object
+	 * @return The list of {@link ErrorMessage} objects
+	 */
+	private List<ErrorMessage> processErrors(BindingResult result) {
+		List<FieldError> allErrors = result.getFieldErrors();
+		List<ErrorMessage> errorMessages = new ArrayList<ErrorMessage>();
+		for (FieldError objectError : allErrors) {
+			ErrorMessage error = new ErrorMessage(objectError.getField(), objectError.getField() + "  " + objectError.getDefaultMessage());
+			log.debug("Processed error: \"{}\" from object error \"{}\"", error, objectError);
+			errorMessages.add(error);
+		}
+		return errorMessages;
 	}
 	
 	//TODO Update so that we are updating selected entites, rather than dropping and re-adding

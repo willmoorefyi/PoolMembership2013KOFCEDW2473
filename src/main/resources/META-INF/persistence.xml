@@ -7,6 +7,9 @@
       <provider>org.datanucleus.api.jpa.PersistenceProviderImpl</provider>
       <class>com.columbusclubevents.pool.membershipApplication.model.MembershipCategory</class>
       <class>com.columbusclubevents.pool.membershipApplication.model.MembershipOption</class>
+      <class>com.columbusclubevents.pool.membershipApplication.model.PersonName</class>
+      <class>com.columbusclubevents.pool.membershipApplication.model.Dependent</class>
+      <class>com.columbusclubevents.pool.membershipApplication.model.Member</class>
       <properties>
          <property name="datanucleus.NontransactionalRead" value="true" />
          <property name="datanucleus.NontransactionalWrite" value="true" />

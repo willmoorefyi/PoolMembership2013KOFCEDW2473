@@ -6,6 +6,7 @@
 <div class="${cssClass}">
    <div class="row-fluid">
 		<input id="${inputId}" 
+		   name="${inputId}" 
 		   type="text" 
 		   class="span12"
 		   placeholder="${helpText}" 
