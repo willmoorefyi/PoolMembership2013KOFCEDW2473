@@ -69,49 +69,4 @@ public class MembershipOption implements Serializable {
 				+ ", optionLabel=" + optionLabel + ", cost=" + cost
 				+ "]";
 	}
-
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((Id == null) ? 0 : Id.hashCode());
-		result = prime * result + ((cost == null) ? 0 : cost.hashCode());
-		result = prime * result
-				+ ((optionKey == null) ? 0 : optionKey.hashCode());
-		result = prime * result
-				+ ((optionLabel == null) ? 0 : optionLabel.hashCode());
-		return result;
-	}
-
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		MembershipOption other = (MembershipOption) obj;
-		if (Id == null) {
-			if (other.Id != null)
-				return false;
-		} else if (!Id.equals(other.Id))
-			return false;
-		if (cost == null) {
-			if (other.cost != null)
-				return false;
-		} else if (!cost.equals(other.cost))
-			return false;
-		if (optionKey == null) {
-			if (other.optionKey != null)
-				return false;
-		} else if (!optionKey.equals(other.optionKey))
-			return false;
-		if (optionLabel == null) {
-			if (other.optionLabel != null)
-				return false;
-		} else if (!optionLabel.equals(other.optionLabel))
-			return false;
-		return true;
-	}
 }

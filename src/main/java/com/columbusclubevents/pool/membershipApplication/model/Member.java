@@ -33,37 +33,83 @@ public class Member implements Serializable {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long Id;
 	
-	@NotNull 
-	@Valid
-	@OneToMany(cascade = CascadeType.ALL, fetch=FetchType.EAGER)
-	public PersonName name;
+	private PersonName name;
 	
-	@NotEmpty(message="You must specify an address")
-	public String addressLine1;
+	private String addressLine1;
 	
-	public String addressLine2;
+	private String addressLine2;
 	
-	@NotEmpty(message="You must specify a city")
-	public String city;
+	private String city;
 	
-	@NotEmpty(message="You must specify a state")
-	public String state;
+	private String state;
 	
 	private String zip;
 	
-	private String phoneNumber;
+	private String primaryPhone;
 	
-	@NotEmpty @Email(message="Please enter a valid email address")
-	public String email;
+	private String secondaryPhone;
 	
-	public String validationInput;
+	private String email;
 	
-	public String memberStatus;
+	private String validationInput;
 	
+	private MembershipOption membershipOption;
+	
+	private String memberStatus = "new";
+	
+	public Long getId() {
+		return Id;
+	}
+
+	public void setId(Long id) {
+		Id = id;
+	}
+
+	@NotNull 
 	@Valid
-	@JsonManagedReference
-	@OneToMany(mappedBy = "parent", cascade = CascadeType.ALL, fetch=FetchType.EAGER)
-	public List<Dependent> dependents;
+	@OneToMany(cascade = CascadeType.ALL, fetch=FetchType.EAGER)
+	public PersonName getName() {
+		return name;
+	}
+
+	public void setName(PersonName name) {
+		this.name = name;
+	}
+
+	@NotEmpty(message="You must specify an address")
+	public String getAddressLine1() {
+		return addressLine1;
+	}
+
+	public void setAddressLine1(String addressLine1) {
+		this.addressLine1 = addressLine1;
+	}
+
+	public String getAddressLine2() {
+		return addressLine2;
+	}
+
+	public void setAddressLine2(String addressLine2) {
+		this.addressLine2 = addressLine2;
+	}
+
+	@NotEmpty(message="You must specify a city")
+	public String getCity() {
+		return city;
+	}
+
+	public void setCity(String city) {
+		this.city = city;
+	}
+
+	@NotEmpty(message="You must specify a state")
+	public String getState() {
+		return state;
+	}
+
+	public void setState(String state) {
+		this.state = state;
+	}
 	
 	@NotEmpty 
 	@Pattern(regexp = "^\\d{5}(?:[-\\s]\\d{4})?$", 
@@ -75,109 +121,84 @@ public class Member implements Serializable {
 	public void setZip(String zip) {
 		this.zip = zip;
 	}
+	
+	@Valid
+	@JsonManagedReference
+	@OneToMany(mappedBy = "parent", cascade = CascadeType.ALL, fetch=FetchType.EAGER)
+	public List<Dependent> dependents;
 
 	@NotEmpty @Pattern(regexp="1?\\W*([2-9][0-8][0-9])\\W*([2-9][0-9]{2})\\W*([0-9]{4})(\\s?e?x?t?(\\d*))?", 
 			message="Please enter a valid US phone number (10 digits, with or without sentinel characters and extension)")
-	public String getPhoneNumber() {
-		return phoneNumber;
+	public String getPrimaryPhone() {
+		return primaryPhone;
 	}
 
-	public void setPhoneNumber(String phoneNumber) {
-		this.phoneNumber = phoneNumber;
+	public void setPrimaryPhone(String primaryPhone) {
+		this.primaryPhone = primaryPhone;
+	}
+	
+	@Pattern(regexp="1?\\W*([2-9][0-8][0-9])\\W*([2-9][0-9]{2})\\W*([0-9]{4})(\\s?e?x?t?(\\d*))?", 
+			message="Please enter a valid US phone number (10 digits, with or without sentinel characters and extension)")
+	public String getSecondaryPhone() {
+		return secondaryPhone;
+	}
+
+	public void setSecondaryPhone(String secondaryPhone) {
+		this.secondaryPhone = secondaryPhone;
+	}
+
+	@NotEmpty @Email(message="Please enter a valid email address")
+	public String getEmail() {
+		return email;
+	}
+
+	public void setEmail(String email) {
+		this.email = email;
+	}
+
+	public String getValidationInput() {
+		return validationInput;
+	}
+
+	public void setValidationInput(String validationInput) {
+		this.validationInput = validationInput;
+	}
+
+	public String getMemberStatus() {
+		return memberStatus;
+	}
+
+	public void setMemberStatus(String memberStatus) {
+		this.memberStatus = memberStatus;
+	}
+
+	public List<Dependent> getDependents() {
+		return dependents;
+	}
+
+	public void setDependents(List<Dependent> dependents) {
+		this.dependents = dependents;
+	}
+
+	@NotNull
+	public MembershipOption getMembershipOption() {
+		return membershipOption;
+	}
+
+	public void setMembershipOption(MembershipOption membershipOption) {
+		this.membershipOption = membershipOption;
 	}
 
 	@Override
 	public String toString() {
-		return "Member [name=" + name + ", addressLine1=" + addressLine1
-				+ ", addressLine2=" + addressLine2 + ", city=" + city
-				+ ", state=" + state + ", zip=" + zip + ", phoneNumber="
-				+ phoneNumber + ", email=" + email + ", memberStatus="
-				+ memberStatus + ", dependents=" + dependents + "]";
+		return "Member [Id=" + Id + ", name=" + name + ", addressLine1="
+				+ addressLine1 + ", addressLine2=" + addressLine2 + ", city="
+				+ city + ", state=" + state + ", zip=" + zip
+				+ ", primaryPhone=" + primaryPhone + ", secondaryPhone="
+				+ secondaryPhone + ", email=" + email + ", validationInput="
+				+ validationInput + ", mebershipOption=" + membershipOption
+				+ ", memberStatus=" + memberStatus + ", dependents="
+				+ dependents + "]";
 	}
 
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result
-				+ ((addressLine1 == null) ? 0 : addressLine1.hashCode());
-		result = prime * result
-				+ ((addressLine2 == null) ? 0 : addressLine2.hashCode());
-		result = prime * result + ((city == null) ? 0 : city.hashCode());
-		result = prime * result
-				+ ((dependents == null) ? 0 : dependents.hashCode());
-		result = prime * result + ((email == null) ? 0 : email.hashCode());
-		result = prime * result
-				+ ((memberStatus == null) ? 0 : memberStatus.hashCode());
-		result = prime * result + ((name == null) ? 0 : name.hashCode());
-		result = prime * result
-				+ ((phoneNumber == null) ? 0 : phoneNumber.hashCode());
-		result = prime * result + ((state == null) ? 0 : state.hashCode());
-		result = prime * result + ((zip == null) ? 0 : zip.hashCode());
-		return result;
-	}
-
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		Member other = (Member) obj;
-		if (addressLine1 == null) {
-			if (other.addressLine1 != null)
-				return false;
-		} else if (!addressLine1.equals(other.addressLine1))
-			return false;
-		if (addressLine2 == null) {
-			if (other.addressLine2 != null)
-				return false;
-		} else if (!addressLine2.equals(other.addressLine2))
-			return false;
-		if (city == null) {
-			if (other.city != null)
-				return false;
-		} else if (!city.equals(other.city))
-			return false;
-		if (dependents == null) {
-			if (other.dependents != null)
-				return false;
-		} else if (!dependents.equals(other.dependents))
-			return false;
-		if (email == null) {
-			if (other.email != null)
-				return false;
-		} else if (!email.equals(other.email))
-			return false;
-		if (memberStatus == null) {
-			if (other.memberStatus != null)
-				return false;
-		} else if (!memberStatus.equals(other.memberStatus))
-			return false;
-		if (name == null) {
-			if (other.name != null)
-				return false;
-		} else if (!name.equals(other.name))
-			return false;
-		if (phoneNumber == null) {
-			if (other.phoneNumber != null)
-				return false;
-		} else if (!phoneNumber.equals(other.phoneNumber))
-			return false;
-		if (state == null) {
-			if (other.state != null)
-				return false;
-		} else if (!state.equals(other.state))
-			return false;
-		if (zip == null) {
-			if (other.zip != null)
-				return false;
-		} else if (!zip.equals(other.zip))
-			return false;
-		return true;
-	}
-	
-	
 }

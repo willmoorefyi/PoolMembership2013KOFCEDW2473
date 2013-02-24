@@ -6,6 +6,7 @@ $(document).ready(function() {
 	$('#submitButton').click(confirmForm);;
 	$('#confirmDlgOk').click(submitForm);
 	$('#rateTabs a:first').tab('show');
+	
 	//attach the cost validation logic to the inputs (radios and text fields)
 	$('#rateTabsContent input[type=text]').blur(validateCost);
 	$('#rateTabsContent input[type=radio]').click(validateCostRadio);
@@ -18,11 +19,11 @@ function addRelationTableRow() {
    $('#RelationTable > tbody:last').append($('<tr>')
       .append($('<td>')
          .append($('<input>')
-            .attr('id', 'relationFirstName' + totalRelations).attr('name', 'relationFirstName').attr('type', 'text').attr('placeholder', 'First Name').attr('title', 'First Name') 
+            .attr('id', 'relationFirstName' + totalRelations).attr('name', 'firstName').attr('type', 'text').attr('placeholder', 'First Name').attr('title', 'First Name') 
          )
       ).append($('<td>')
          .append($('<input>')
-            .attr('id', 'relationLastName' + totalRelations).attr('name', 'relationLastName').attr('type', 'text').attr('placeholder', 'Last Name').attr('title', 'Last Name') 
+            .attr('id', 'relationLastName' + totalRelations).attr('name', 'lastName').attr('type', 'text').attr('placeholder', 'Last Name').attr('title', 'Last Name') 
          )
       ).append($('<td>')
          .append($('<select>')
@@ -67,7 +68,7 @@ function validateCostRadio() {
 }
 
 /**
- * Reset the cost element, then validate the input elements for a given input box and, if it matches the pattern, display the cost in the input box
+ * Reset the cost element, then validate the input elements for a given input box and, if it matches the pattern, display the cost in the cost box
  */
 function validateCost(inputEvent, refElem) {
 	$('#finalCost').val('');
@@ -83,7 +84,6 @@ function validateCost(inputEvent, refElem) {
 			setCost($(checkedElem).data('cost'));
 		}
 	}
-	
 }
 
 /**
@@ -97,7 +97,13 @@ function setCost(val) {
  * Simple method to launch the confirm form.  Currently only shows the "confirm" modal dialog.
  */
 function confirmForm() {
-	$('#confirmDlg').modal('show');
+	//verify a member option has been selected
+	if($('#application-form #rateTabsContent input[name=memberOption]:checked').length == 0) {
+		showError('Invalid Submission', 'You must select a membership option to submit your membership application form.');
+	}
+	else {
+		$('#confirmDlg').modal('show');
+	}
 }
 
 /**
@@ -107,52 +113,110 @@ function confirmForm() {
 function submitForm() {
 	$('#confirmDlg').modal('hide');
 
-	var formObj = { 'member' : {} };
-	//serialize all the simple objects
-	$('#application-form input:not(#RelationTable input, #rateTabsContent input)').each(function(index) {
-		formObj.member[$(this).attr('name')] = $(this).val();
-	});
-	$('application-form #RelationTable tbody tr').find('td').each(function(index) {
-		if(index == 0) {
-			formObj.member['dependent'] = [];
-		}
-		$(this).find('input, select').each(function(j) {
-			formObj.member.dependent[index][$(this).attr('name')] = $(this).val();
-		});
+	var member = { };
+	
+	var form = $('#application-form');
+	
+	//serialize the name
+	member.name = { };
+	serializeFormObject(form, member.name, '#name input');
+	
+	//serialize the address
+	serializeFormObject(form, member, '#addresses input');
+	
+	//serialize the phone numbers
+	serializeFormObject(form, member, '#phones input');
+	
+	//serialize the emails
+	serializeFormObject(form, member, '#emails input');
+	
+	//serialize the dependents
+	member['dependents'] = [];
+	form.find('#RelationTable tbody tr').each(function(index) {
+		member.dependents[index] = { };
+		serializeFormObject($(this), member.dependents[index], 'input, select');		
 	});
 	
+	//retrieve the membership option
+	member.membershipOption = { };
+	var memberOpt = form.find('#rateTabsContent input[name=memberOption]:checked');
+	member.membershipOption.optionKey = $(memberOpt).val();
+	var validationInputId = $(memberOpt).data('validation-input');
+	if(validationInputId) {
+		var validationInput = form.find('#' + validationInputId);
+		if(validationInput.val() && validationInput.get(0).checkValidity()) {
+			member.validationInput = validationInput.val();
+		}
+		else {
+			//don't continue to post if the value on the form is invalid
+			showError('Validation Error', 'You must enter a valid value for the membership option you have selected.');
+			return false;
+		}
+	}
+	
 	$.ajax(formUrl, {
-		data: JSON.stringify(formObj),
+		data: JSON.stringify(member),
 		contentType: 'application/json; charset=UTF-8',
 		dataType: 'json',
 	    type:'POST',
 		success: function(response) {
 			if (response.status == 'FAIL') {
-				$('#responseDlgTitle').text('Error');
-				$('#responseDlgBody').text('There were errors with your submission.');
-				$('#responseDlgOk').click(function() {
-					$('#responseDlg').modal('hide');
-				});
-				$('#responseDlg').modal('show');
+				showError('Error', 'There were errors with your submission');
 			}
 			else {
-				$('#responseDlgTitle').text('Success!');
-				$('#responseDlgBody').text('Your changes were successfully committed.');
-				$('#responseDlgOk').click(function() {
-					$('#responseDlg').modal('hide');
-				});
-				$('#responseDlg').modal('show');
+				showSuccess("Success!", "Your membership application was succesfully received and stored. You will receive a response in the next few business days. Thanks for your interest!");
 			}
 			
 		}, 
 		error: function(jqXHR, textStatus, errorThrown) {
-			$('#responseDlgTitle').text('Error');
-			$('#responseDlgBody').text('There were errors with your submission. Server Responded with ' + textStatus + ': ' + errorThrown);
-			$('#responseDlgOk').click(function() {
-				$('#responseDlg').modal('hide');
-			});
-			$('#responseDlg').modal('show');
+			showError('Server Error', 'There were errors with your submission. Server Responded with ' + textStatus + ': ' + errorThrown);
 		}
 	});
 	return false;
+}
+
+/**
+ * Serialiaze a form component into a JSON object to post
+ * @param form the form root element
+ * @param memberObj the object to serialize the member values onto
+ * @param selector the selector to retrieve input elements off the form
+ */
+function serializeFormObject(form, memberObj, selector) {
+	form.find(selector).each(function(index) {
+		if($(this).attr('name')) {
+			memberObj[$(this).attr('name')] = $(this).val();
+		}
+	});
+}
+
+/**
+ * Show the response modal dialog box in an "error" state with the specified header and message.
+ * @param errorLabel The title of the message box
+ * @param errorBody The message to put in the message box body.
+ */
+function showError(errorLabel, errorBody) {
+	$('#responseDlg').addClass('alert alert-error');
+	$('#responseDlgTitle').text(errorLabel);
+	$('#responseDlgBody').text(errorBody);
+	$('#responseDlgOk').addClass('btn-danger').click(function() {
+		$('#responseDlg').modal('hide');
+		$('#responseDlgOk').off('click');
+	});
+	$('#responseDlg').modal('show');	
+}
+
+/**
+ * Show the response modal dialog box in a "success" state with the specified header and message.
+ * @param errorLabel The title of the message box
+ * @param errorBody The message to put in the message box body.
+ */
+function showSuccess(msgLabel, msgBody) {
+	$('#responseDlg').removeClass('alert alert-error');
+	$('#responseDlgTitle').text(msgLabel);
+	$('#responseDlgBody').text(msgBody);
+	$('#responseDlgOk').removeClass('btn-danger').click(function() {
+		$('#responseDlg').modal('hide');
+		$('#responseDlgOk').off('click');
+	});
+	$('#responseDlg').modal('show');	
 }

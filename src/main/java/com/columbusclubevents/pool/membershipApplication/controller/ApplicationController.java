@@ -65,7 +65,7 @@ public class ApplicationController {
 		}
 		else {
 			log.debug("Validation of member form succeeded!");
-			memberRepo.save(member);
+			//memberRepo.save(member);
 			res.setStatus("SUCCESS");
 		}
 

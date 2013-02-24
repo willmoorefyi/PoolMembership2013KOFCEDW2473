@@ -135,3 +135,7 @@
 .icon-remove-right {
 	float: right;
 }
+
+.inputFormElem {
+	width: 100%;
+} 

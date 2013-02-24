@@ -31,28 +31,38 @@
                <h1>Membership Application Form<br/><small>2013 Season, Knights of Columbus, Arlington Pool</small></h1>
             </div>
             <h3>Please Enter Your Information Below</h3>
-            <form class="application-form">
+            <form class="application-form" id="application-form">
                <legend>Name</legend>
-               <div class="controls controls-row">
-	               <input id="firstName"     name="firstName"     type="text" class="span3" placeholder="First Name" title="First Name" ></input>
-	               <input id="middleInitial" name="middleInitial" type="text" class="span1" placeholder="MI" title="Middle Initial"></input>
-	               <input id="lastName"      name="lastName"      type="text" class="span3" placeholder="Last Name" title="Last Name"></input>
+               <div class="controls controls-row" id="name">
+                  <div class="control-group span3"><input id="firstName"     name="firstName"     type="text" class="inputFormElem" placeholder="First Name"   title="First Name" ></input></div>
+	               <div class="control-group span1"><input id="middleInitial" name="middleInitial" type="text" class="inputFormElem" placeholder="MI"           title="Middle Initial"></input></div>
+	               <div class="control-group span3"><input id="lastName"      name="lastName"      type="text" class="inputFormElem" placeholder="Last Name"    title="Last Name"></input></div>
                </div>
                <legend>Address</legend>
-               <input id="addressLine1"   name="addressLine1"     type="text" class="span7" placeholder="Address Line 1" title="Address Line 1"></input>
-               <input id="addressLine2"   name="addressLine2"     type="text" class="span7" placeholder="Address Line 2" title="Address Line 2"></input>
-               <div class="controls controls-row">
-                  <input id="city"  name="city"  type="text" class="span3" placeholder="City" title="City"></input>
-                  <tags:stateSelector inputId="state" cssClass="span2" helpText="State"></tags:stateSelector>
-                  <input id="zip"   name="zip"  type="text" class="span2" placeholder="Zip Code" title="Zip Code"></input>
+               <div class="span12 row-fluid" id="addresses">
+	               <div class="controls controls-row">
+		               <div class="control-group span7"><input id="addressLine1"   name="addressLine1"     type="text" class="inputFormElem" placeholder="Address Line 1" title="Address Line 1"></input></div>
+	               </div>
+                  <div class="controls controls-row">
+		               <div class="control-group span7"><input id="addressLine2"   name="addressLine2"     type="text" class="inputFormElem" placeholder="Address Line 2" title="Address Line 2"></input></div>
+	               </div>
+                  <div class="controls controls-row">
+		               <div class="span12 row-fluid">
+			               <div class="controls controls-row" id="citystatezip">
+			                  <div class="control-group span3"><input id="city"  name="city"  type="text" class="inputFormElem" placeholder="City" title="City"></input></div>
+			                  <div class="control-group span2"><tags:stateSelector inputId="state" cssClass="inputFormElem" helpText="State"></tags:stateSelector></div>
+			                  <div class="control-group span2"><input id="zip"   name="zip"   type="text" class="inputFormElem" placeholder="Zip Code" title="Zip Code"></input></div>
+			               </div>
+		               </div>
+                  </div>
                </div>
                <legend>Contact Information</legend>
-               <div class="controls controls-row">
-                  <input id="primaryPhone"   name="primaryPhone"     type="text" class="span3" placeholder="Primary Phone" title="Primary Phone" ></input>
-                  <input id="secondaryPhone" name="secondaryPhone"   type="text" class="span3" placeholder="Secondary Phone" title="Secondary Phone" ></input>
+               <div class="controls controls-row" id="phones">
+                  <div class="control-group span3"><input id="primaryPhone"   name="primaryPhone"     type="text" class="inputFormElem" placeholder="Primary Phone" title="Primary Phone" ></input></div>
+                  <div class="control-group span3"><input id="secondaryPhone" name="secondaryPhone"   type="text" class="inputFormElem" placeholder="Secondary Phone" title="Secondary Phone" ></input></div>
                </div>
-               <div class="controls controls-row">
-                  <input id="email"    name="email"   type="email"   class="span6" placeholder="Email" title="Email"></input>
+               <div class="controls controls-row" id="emails">
+                  <div class="control-group span6"><input id="email"    name="email"   type="email"   class="inputFormElem" placeholder="Email" title="Email"></input></div>
                </div>
                <legend>Family Members</legend>
                <table id="RelationTable" class="table table-hover">
