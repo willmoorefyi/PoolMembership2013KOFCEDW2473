@@ -2,11 +2,14 @@ package com.columbusclubevents.pool.membershipApplication.model;
 
 import java.io.Serializable;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToOne;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
@@ -38,8 +41,8 @@ public class Dependent implements Serializable {
 		Id = id;
 	}
 
-	@NotNull
 	@JsonBackReference
+	@ManyToOne(fetch=FetchType.LAZY)
 	public Member getParent() {
 		return parent;
 	}
@@ -50,7 +53,7 @@ public class Dependent implements Serializable {
 
 	@NotNull
 	@Valid
-	@ManyToOne
+	@OneToOne(cascade = CascadeType.ALL)
 	public PersonName getName() {
 		return name;
 	}

@@ -85,6 +85,12 @@
                   <input type="text" id="finalCost" placeholder="Cost" class="span3" disabled=""></input>
                </div>
                <div class="form-bottom-spacer"><jsp:text> </jsp:text></div>
+               <legend>Payment Method</legend>
+               <div class="controls controls-row" id="paymentMethod">
+                  <tags:paymentOption inputId="paymentOptionCC" inputValue="paymentOptionCC" inputName="paymentOption" inputText="Pay by Credit Card (using PayPal) Now"></tags:paymentOption>
+                  <tags:paymentOption inputId="paymentOptionCashCheck" inputValue="paymentOptionCashCheck" inputName="paymentOption" inputText="Pay by Cash or Check Later"></tags:paymentOption>
+               </div>
+               <div class="form-bottom-spacer"><jsp:text> </jsp:text></div>
                <button class="btn btn-primary" type="button" id="submitButton">Submit</button>
             </form>
 	         <tags:modal modalId="confirmDlg" titleElemId="confirmDlgTitle"

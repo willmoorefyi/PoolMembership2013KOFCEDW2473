@@ -11,7 +11,6 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 
 import org.codehaus.jackson.annotate.JsonManagedReference;
@@ -31,49 +30,40 @@ public class Member implements Serializable {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long Id;
+	private Long id;
 	
-	private PersonName name;
+	private String firstName;
+	private Character middleInitial;
+	private String lastName;
+	
+	private List<Dependent> dependents;
 	
 	private String addressLine1;
-	
 	private String addressLine2;
-	
 	private String city;
-	
 	private String state;
-	
 	private String zip;
 	
 	private String primaryPhone;
-	
 	private String secondaryPhone;
-	
 	private String email;
 	
 	private String validationInput;
+	private String memberType;
+	private String memberStatus;
+	private Integer memberCost;
+	private String paymentOption;
+	private Boolean memberPaid;
 	
-	private MembershipOption membershipOption;
-	
-	private String memberStatus = "new";
+	//google doesn't really handle unowned relationships in JPA well
+	//private MembershipOption membershipOption;
 	
 	public Long getId() {
-		return Id;
+		return id;
 	}
 
 	public void setId(Long id) {
-		Id = id;
-	}
-
-	@NotNull 
-	@Valid
-	@OneToMany(cascade = CascadeType.ALL, fetch=FetchType.EAGER)
-	public PersonName getName() {
-		return name;
-	}
-
-	public void setName(PersonName name) {
-		this.name = name;
+		this.id = id;
 	}
 
 	@NotEmpty(message="You must specify an address")
@@ -111,7 +101,7 @@ public class Member implements Serializable {
 		this.state = state;
 	}
 	
-	@NotEmpty 
+	@NotEmpty(message="Zip Code cannot be empty.")
 	@Pattern(regexp = "^\\d{5}(?:[-\\s]\\d{4})?$", 
 			message="Please enter a valid US zip code (5 digits, optionally with 4 digit extension)")
 	public String getZip() {
@@ -121,13 +111,8 @@ public class Member implements Serializable {
 	public void setZip(String zip) {
 		this.zip = zip;
 	}
-	
-	@Valid
-	@JsonManagedReference
-	@OneToMany(mappedBy = "parent", cascade = CascadeType.ALL, fetch=FetchType.EAGER)
-	public List<Dependent> dependents;
 
-	@NotEmpty @Pattern(regexp="1?\\W*([2-9][0-8][0-9])\\W*([2-9][0-9]{2})\\W*([0-9]{4})(\\s?e?x?t?(\\d*))?", 
+	@NotEmpty @Pattern(regexp="^$|1?\\W*([2-9][0-8][0-9])\\W*([2-9][0-9]{2})\\W*([0-9]{4})(\\s?e?x?t?(\\d*))?", 
 			message="Please enter a valid US phone number (10 digits, with or without sentinel characters and extension)")
 	public String getPrimaryPhone() {
 		return primaryPhone;
@@ -137,7 +122,7 @@ public class Member implements Serializable {
 		this.primaryPhone = primaryPhone;
 	}
 	
-	@Pattern(regexp="1?\\W*([2-9][0-8][0-9])\\W*([2-9][0-9]{2})\\W*([0-9]{4})(\\s?e?x?t?(\\d*))?", 
+	@Pattern(regexp="^$|1?\\W*([2-9][0-8][0-9])\\W*([2-9][0-9]{2})\\W*([0-9]{4})(\\s?e?x?t?(\\d*))?", 
 			message="Please enter a valid US phone number (10 digits, with or without sentinel characters and extension)")
 	public String getSecondaryPhone() {
 		return secondaryPhone;
@@ -147,13 +132,25 @@ public class Member implements Serializable {
 		this.secondaryPhone = secondaryPhone;
 	}
 
-	@NotEmpty @Email(message="Please enter a valid email address")
+	@NotEmpty(message="You must specify an email address")
+	@Email(message="Please enter a valid email address")
 	public String getEmail() {
 		return email;
 	}
 
 	public void setEmail(String email) {
 		this.email = email;
+	}
+
+	@Valid
+	@JsonManagedReference
+	@OneToMany(mappedBy = "parent", cascade = CascadeType.ALL, fetch=FetchType.EAGER)
+	public List<Dependent> getDependents() {
+		return dependents;
+	}
+
+	public void setDependents(List<Dependent> dependents) {
+		this.dependents = dependents;
 	}
 
 	public String getValidationInput() {
@@ -164,6 +161,14 @@ public class Member implements Serializable {
 		this.validationInput = validationInput;
 	}
 
+	public Integer getMemberCost() {
+		return memberCost;
+	}
+
+	public void setMemberCost(Integer memberCost) {
+		this.memberCost = memberCost;
+	}
+
 	public String getMemberStatus() {
 		return memberStatus;
 	}
@@ -172,33 +177,91 @@ public class Member implements Serializable {
 		this.memberStatus = memberStatus;
 	}
 
-	public List<Dependent> getDependents() {
-		return dependents;
+	public String getMemberType() {
+		return memberType;
 	}
 
-	public void setDependents(List<Dependent> dependents) {
-		this.dependents = dependents;
+	public void setMemberType(String memberType) {
+		this.memberType = memberType;
 	}
 
-	@NotNull
-	public MembershipOption getMembershipOption() {
-		return membershipOption;
+	@NotEmpty(message="You must specify a payment option")
+	public String getPaymentOption() {
+		return paymentOption;
 	}
 
-	public void setMembershipOption(MembershipOption membershipOption) {
-		this.membershipOption = membershipOption;
+	public void setPaymentOption(String paymentOption) {
+		this.paymentOption = paymentOption;
+	}
+
+	public Boolean getMemberPaid() {
+		return memberPaid;
+	}
+
+	public void setMemberPaid(Boolean memberPaid) {
+		this.memberPaid = memberPaid;
+	}
+
+	@NotEmpty(message = "You must specify a first name")
+	public String getFirstName() {
+		return firstName;
+	}
+
+	public void setFirstName(String firstName) {
+		this.firstName = firstName;
+	}
+
+	public Character getMiddleInitial() {
+		return middleInitial;
+	}
+
+	public void setMiddleInitial(Character middleInitial) {
+		this.middleInitial = middleInitial;
+	}
+
+	@NotEmpty(message = "You must specify a last name")
+	public String getLastName() {
+		return lastName;
+	}
+
+	public void setLastName(String lastName) {
+		this.lastName = lastName;
 	}
 
 	@Override
 	public String toString() {
-		return "Member [Id=" + Id + ", name=" + name + ", addressLine1="
-				+ addressLine1 + ", addressLine2=" + addressLine2 + ", city="
-				+ city + ", state=" + state + ", zip=" + zip
-				+ ", primaryPhone=" + primaryPhone + ", secondaryPhone="
-				+ secondaryPhone + ", email=" + email + ", validationInput="
-				+ validationInput + ", mebershipOption=" + membershipOption
-				+ ", memberStatus=" + memberStatus + ", dependents="
-				+ dependents + "]";
+		StringBuilder builder = new StringBuilder();
+		builder.append("Member [id=").append(id).append(", firstName=")
+				.append(firstName).append(", middleInitial=")
+				.append(middleInitial).append(", lastName=").append(lastName)
+				.append(", dependents=").append(dependents)
+				.append(", addressLine1=").append(addressLine1)
+				.append(", addressLine2=").append(addressLine2)
+				.append(", city=").append(city).append(", state=")
+				.append(state).append(", zip=").append(zip)
+				.append(", primaryPhone=").append(primaryPhone)
+				.append(", secondaryPhone=").append(secondaryPhone)
+				.append(", email=").append(email).append(", validationInput=")
+				.append(validationInput).append(", memberType=")
+				.append(memberType).append(", memberStatus=")
+				.append(memberStatus).append(", memberCost=")
+				.append(memberCost).append(", paymentOption=")
+				.append(paymentOption).append(", memberPaid=")
+				.append(memberPaid).append("]");
+		return builder.toString();
+	}
+	
+	
+	/*
+	@NotNull 
+	@Valid
+	@OneToOne(cascade = CascadeType.ALL)
+	public PersonName getName() {
+		return name;
 	}
 
+	public void setName(PersonName name) {
+		this.name = name;
+	}
+	*/
 }

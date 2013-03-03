@@ -23,6 +23,20 @@
 	</properties>
 
 	<dependencies>
+	  <!-- Custom Dependencies -->
+      <dependency>
+         <groupId>com.paypal</groupId>
+         <artifactId>paypal-adaptive</artifactId>
+         <version>0.0.1-SNAPSHOT</version>
+      </dependency>
+      
+      <!-- Apache Commons -->
+      <dependency>
+		   <groupId>commons-lang</groupId>
+		   <artifactId>commons-lang</artifactId>
+		   <version>2.6</version>
+		</dependency>
+	
 		<!-- Google App Engine dependencies -->
 		<dependency>
 			<groupId>com.google.appengine</groupId>
@@ -195,7 +209,7 @@
 			</exclusions>
 		</dependency>
 
-		<!-- Spring JPA -->
+		<!-- Spring Data JPA -->
 		<dependency>
 			<groupId>org.springframework.data</groupId>
 			<artifactId>spring-data-jpa</artifactId>

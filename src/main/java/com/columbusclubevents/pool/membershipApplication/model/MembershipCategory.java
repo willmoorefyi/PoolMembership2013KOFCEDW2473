@@ -11,37 +11,38 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
+import javax.persistence.PrePersist;
+import javax.persistence.PreUpdate;
 import javax.validation.Valid;
 import javax.validation.constraints.Size;
 
+import org.codehaus.jackson.annotate.JsonManagedReference;
 import org.hibernate.validator.constraints.NotEmpty;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Entity
 public class MembershipCategory implements Serializable {
+	Logger log = LoggerFactory.getLogger(MembershipCategory.class);
 	private static final long serialVersionUID = -8630292711855527925L;
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long Id;
 	
-	@NotEmpty
-	public String tabDescription;
+	private String tabDescription;
 	
-	@NotEmpty
-	public String userDescription;
+	private String userDescription;
 	
-	public boolean validationRequired;
+	private boolean validationRequired;
 	
-	public String validationText;
+	private String validationText;
 	
-	public String validationHint;
+	private String validationHint;
 	
-	public String validationConstraint;
+	private String validationConstraint;
 
-	@Valid
-	@Size(min=1)
-	@OneToMany(cascade = CascadeType.ALL, fetch=FetchType.EAGER)
-	public List<MembershipOption> memberOptions;
+	private List<MembershipOption> memberOptions;
 	
 	public MembershipCategory() {
 		this.memberOptions = new ArrayList<MembershipOption>();
@@ -55,6 +56,11 @@ public class MembershipCategory implements Serializable {
 		return Id;
 	}
 
+	public void setId(Long id) {
+		Id = id;
+	}
+
+	@NotEmpty
 	public String getTabDescription() {
 		return tabDescription;
 	}
@@ -63,6 +69,7 @@ public class MembershipCategory implements Serializable {
 		this.tabDescription = tabDescription;
 	}
 
+	@NotEmpty
 	public String getUserDescription() {
 		return userDescription;
 	}
@@ -103,18 +110,30 @@ public class MembershipCategory implements Serializable {
 		this.validationConstraint = validationConstraint;
 	}
 
+	@Valid
+	@Size(min=1)
+	@JsonManagedReference
+	@OneToMany(mappedBy = "memberCategoryParent", targetEntity=MembershipOption.class, cascade = CascadeType.ALL, fetch=FetchType.EAGER)
+	public List<MembershipOption> getMemberOptions() {
+		return memberOptions;
+	}
 
 	public void setMemberOptions(List<MembershipOption> memberOptions) {
 		this.memberOptions = memberOptions;
 	}
-
-	public List<MembershipOption> getMemberOptions() {
-		return memberOptions;
-	}
+	
+    @PreUpdate
+    @PrePersist
+    public void updateMemberOptionGraph() {
+    	for(MembershipOption opt : this.memberOptions)  {
+    		log.debug("Setting member category parent for option with key=" + opt.getOptionKey());
+    		opt.setMemberCategoryParent(this);
+    	}
+    }
+	
 	
 	@Override
 	public String toString() {
-
 		StringBuilder sb = new StringBuilder();
 		sb.append("MembershipCategory [");
 		sb.append("Id=");sb.append(Id);
@@ -130,77 +149,5 @@ public class MembershipCategory implements Serializable {
 		}
 		sb.append("] ");
 		return sb.toString();
-	}
-
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((Id == null) ? 0 : Id.hashCode());
-		result = prime * result
-				+ ((memberOptions == null) ? 0 : memberOptions.hashCode());
-		result = prime * result
-				+ ((tabDescription == null) ? 0 : tabDescription.hashCode());
-		result = prime * result
-				+ ((userDescription == null) ? 0 : userDescription.hashCode());
-		result = prime
-				* result
-				+ ((validationConstraint == null) ? 0 : validationConstraint
-						.hashCode());
-		result = prime * result
-				+ ((validationHint == null) ? 0 : validationHint.hashCode());
-		result = prime * result + (validationRequired ? 1231 : 1237);
-		result = prime * result
-				+ ((validationText == null) ? 0 : validationText.hashCode());
-		return result;
-	}
-
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		MembershipCategory other = (MembershipCategory) obj;
-		if (Id == null) {
-			if (other.Id != null)
-				return false;
-		} else if (!Id.equals(other.Id))
-			return false;
-		if (memberOptions == null) {
-			if (other.memberOptions != null)
-				return false;
-		} else if (!memberOptions.equals(other.memberOptions))
-			return false;
-		if (tabDescription == null) {
-			if (other.tabDescription != null)
-				return false;
-		} else if (!tabDescription.equals(other.tabDescription))
-			return false;
-		if (userDescription == null) {
-			if (other.userDescription != null)
-				return false;
-		} else if (!userDescription.equals(other.userDescription))
-			return false;
-		if (validationConstraint == null) {
-			if (other.validationConstraint != null)
-				return false;
-		} else if (!validationConstraint.equals(other.validationConstraint))
-			return false;
-		if (validationHint == null) {
-			if (other.validationHint != null)
-				return false;
-		} else if (!validationHint.equals(other.validationHint))
-			return false;
-		if (validationRequired != other.validationRequired)
-			return false;
-		if (validationText == null) {
-			if (other.validationText != null)
-				return false;
-		} else if (!validationText.equals(other.validationText))
-			return false;
-		return true;
 	}
 }

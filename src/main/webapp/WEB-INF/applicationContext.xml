@@ -19,6 +19,11 @@
 	<bean name="transactionManager" class="org.springframework.orm.jpa.JpaTransactionManager">
 		<property name="entityManagerFactory" ref="entityManagerFactory" />
 	</bean>
+	
+	<!-- Load application properties file from the classpath -->
+	<bean id="propertyConfigurer" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+	    <property name="location" value="classpath:paypal.properties" />
+	</bean> 
 
 	<!-- Activates various annotations to be detected in bean classes -->
 	<context:annotation-config />
@@ -36,5 +41,5 @@
 	<!-- Define the bean to process persistance annotations -->
 	<bean class="org.springframework.orm.jpa.support.PersistenceAnnotationBeanPostProcessor" />
 
-   <jpa:repositories base-package="com.columbusclubevents.pool.membershipApplication"/>
+   <jpa:repositories base-package="com.columbusclubevents.pool.membershipApplication.repository"/>
 </beans>

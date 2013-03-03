@@ -3,11 +3,14 @@ package com.columbusclubevents.pool.membershipApplication.model;
 import java.io.Serializable;
 
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.validation.constraints.Pattern;
+import javax.persistence.ManyToOne;
+import javax.validation.constraints.NotNull;
 
+import org.codehaus.jackson.annotate.JsonBackReference;
 import org.hibernate.validator.constraints.NotEmpty;
 
 import com.google.appengine.api.datastore.Key;
@@ -20,16 +23,13 @@ public class MembershipOption implements Serializable {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Key Id;
 	
-	//@Column(unique=true) //GAE doesn't support unique columns
-	@NotEmpty
-	public String optionKey;
+	private String optionKey;
 
-	@NotEmpty
-	public String optionLabel;
+	private String optionLabel;
 	
-	@NotEmpty
-	@Pattern(regexp="\\d+(\\.\\d{2})?")
-	public String cost;
+	private Integer cost;
+	
+	private MembershipCategory memberCategoryParent;
 
 	public MembershipOption() {
 		super();
@@ -38,23 +38,13 @@ public class MembershipOption implements Serializable {
 	public Key getId() {
 		return Id;
 	}
-
-	public String getOptionLabel() {
-		return optionLabel;
+	
+	public void setId(Key id) {
+		Id = id;
 	}
 
-	public void setOptionLabel(String optionLabel) {
-		this.optionLabel = optionLabel;
-	}
-
-	public String getCost() {
-		return cost;
-	}
-
-	public void setCost(String cost) {
-		this.cost = cost;
-	}
-
+	//@Column(unique=true) //GAE doesn't support unique columns
+	@NotEmpty
 	public String getOptionKey() {
 		return optionKey;
 	}
@@ -63,10 +53,43 @@ public class MembershipOption implements Serializable {
 		this.optionKey = optionKey;
 	}
 
+	@NotEmpty
+	public String getOptionLabel() {
+		return optionLabel;
+	}
+
+	public void setOptionLabel(String optionLabel) {
+		this.optionLabel = optionLabel;
+	}
+
+	@NotNull
+	public Integer getCost() {
+		return cost;
+	}
+
+	public void setCost(Integer cost) {
+		this.cost = cost;
+	}
+
+	@JsonBackReference
+	@ManyToOne(fetch=FetchType.EAGER)
+	public MembershipCategory getMemberCategoryParent() {
+		return memberCategoryParent;
+	}
+
+	public void setMemberCategoryParent(MembershipCategory memberCategoryParent) {
+		this.memberCategoryParent = memberCategoryParent;
+	}
+
 	@Override
 	public String toString() {
-		return "MembershipOption [Id=" + Id + ", optionKey=" + optionKey
-				+ ", optionLabel=" + optionLabel + ", cost=" + cost
-				+ "]";
+		StringBuilder builder = new StringBuilder();
+		builder.append("MembershipOption [Id=").append(Id)
+				.append(", optionKey=").append(optionKey)
+				.append(", optionLabel=").append(optionLabel)
+				.append(", cost=").append(cost)
+				.append(", memberCategoryParent=").append(memberCategoryParent == null ? "null" : memberCategoryParent.getId())
+				.append("]");
+		return builder.toString();
 	}
 }

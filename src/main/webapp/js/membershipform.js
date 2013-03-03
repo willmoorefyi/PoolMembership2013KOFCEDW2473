@@ -3,7 +3,7 @@ var totalRelations=0;
 $(document).ready(function() {
 	$('#relation-question').tooltip();
 	$('#addRelationButton').click(addRelationTableRow);
-	$('#submitButton').click(confirmForm);;
+	$('#submitButton').click(confirmForm);
 	$('#confirmDlgOk').click(submitForm);
 	$('#rateTabs a:first').tab('show');
 	
@@ -98,8 +98,8 @@ function setCost(val) {
  */
 function confirmForm() {
 	//verify a member option has been selected
-	if($('#application-form #rateTabsContent input[name=memberOption]:checked').length == 0) {
-		showError('Invalid Submission', 'You must select a membership option to submit your membership application form.');
+	if($('#application-form #rateTabsContent input[name=memberOption]:checked').length == 0 || $('#application-form #paymentMethod input[name=paymentOption]:checked').length == 0) {
+		showError('Invalid Submission', 'You must select a membership option and payment option to submit your membership application form.');
 	}
 	else {
 		$('#confirmDlg').modal('show');
@@ -111,15 +111,16 @@ function confirmForm() {
  * @returns {Boolean}
  */
 function submitForm() {
-	$('#confirmDlg').modal('hide');
+	disableConfirmForm();
 
-	var member = { };
+	var memberRequest = { };
+	memberRequest.member = { };
+	var member = memberRequest.member;
 	
 	var form = $('#application-form');
 	
 	//serialize the name
-	member.name = { };
-	serializeFormObject(form, member.name, '#name input');
+	serializeFormObject(form, member, '#name input');
 	
 	//serialize the address
 	serializeFormObject(form, member, '#addresses input');
@@ -134,13 +135,15 @@ function submitForm() {
 	member['dependents'] = [];
 	form.find('#RelationTable tbody tr').each(function(index) {
 		member.dependents[index] = { };
-		serializeFormObject($(this), member.dependents[index], 'input, select');		
+		member.dependents[index].name = { };
+		serializeFormObject($(this), member.dependents[index].name, 'input[name="firstName"],input[name="lastName"]');
+		serializeFormObject($(this), member.dependents[index], 'select[name="relationType"]');
 	});
 	
 	//retrieve the membership option
-	member.membershipOption = { };
+	memberRequest.membershipOption = { };
 	var memberOpt = form.find('#rateTabsContent input[name=memberOption]:checked');
-	member.membershipOption.optionKey = $(memberOpt).val();
+	memberRequest.membershipOption.optionKey = $(memberOpt).val();
 	var validationInputId = $(memberOpt).data('validation-input');
 	if(validationInputId) {
 		var validationInput = form.find('#' + validationInputId);
@@ -154,17 +157,21 @@ function submitForm() {
 		}
 	}
 	
+	//serialize the payment selection
+	serializeFormObject(form, member, '#paymentMethod input:checked');
+	
 	$.ajax(formUrl, {
-		data: JSON.stringify(member),
+		data: JSON.stringify(memberRequest),
 		contentType: 'application/json; charset=UTF-8',
 		dataType: 'json',
 	    type:'POST',
 		success: function(response) {
 			if (response.status == 'FAIL') {
-				showError('Error', 'There were errors with your submission');
+				processServerErrors(response.errorMessageList);
 			}
 			else {
-				showSuccess("Success!", "Your membership application was succesfully received and stored. You will receive a response in the next few business days. Thanks for your interest!");
+				//showSuccess("Success!", "Your membership application was succesfully received and stored. You will receive a response in the next few business days. Thanks for your interest!");
+				window.location.href="/application-complete.htm";
 			}
 			
 		}, 
@@ -190,19 +197,55 @@ function serializeFormObject(form, memberObj, selector) {
 }
 
 /**
+ * Disable the confirmation form while posting data
+ */
+function disableConfirmForm() {
+	$('#confirmDlgOk').attr('disabled', 'disabled');
+	$('#confirmDlgOk').addClass('disabled');
+}
+
+/**
+ * Enable the confirmation form after data posting complete
+ */
+function enableConfirmForm() {
+	$('#confirmDlgOk').removeAttr('disabled');
+	$('#confirmDlgOk').removeClass('disabled');
+}
+
+
+/**
+ * Process the errors returned by the server into the error message box
+ * @param errorMessageList The list of errors from the server
+ */
+function processServerErrors(errorMessageList) {
+	
+	
+	var body = $('<div>').addClass('row-fluid')
+		.append($('<div>').addClass('span12').append('There were errors with your submission'));
+		
+	$(errorMessageList).each(function(index) {
+		body.append($('<div>').addClass('span12').append((index+1) + '. ' + this.message));
+	});
+	body.append($('<div>').addClass('span12').append('Please correct these errors and resubmit the form'));
+	showError('Validation Errors on Submission', body);
+}
+
+/**
  * Show the response modal dialog box in an "error" state with the specified header and message.
  * @param errorLabel The title of the message box
- * @param errorBody The message to put in the message box body.
+ * @param errorBody The message to put in the message box body. Note that this can contain HTML markup.
  */
 function showError(errorLabel, errorBody) {
+	$('#confirmDlg').modal('hide');
+	enableConfirmForm();
 	$('#responseDlg').addClass('alert alert-error');
 	$('#responseDlgTitle').text(errorLabel);
-	$('#responseDlgBody').text(errorBody);
+	$('#responseDlgBody').empty().append(errorBody);
 	$('#responseDlgOk').addClass('btn-danger').click(function() {
 		$('#responseDlg').modal('hide');
 		$('#responseDlgOk').off('click');
 	});
-	$('#responseDlg').modal('show');	
+	$('#responseDlg').modal('show');
 }
 
 /**
@@ -212,8 +255,9 @@ function showError(errorLabel, errorBody) {
  */
 function showSuccess(msgLabel, msgBody) {
 	$('#responseDlg').removeClass('alert alert-error');
+	enableConfirmForm();
 	$('#responseDlgTitle').text(msgLabel);
-	$('#responseDlgBody').text(msgBody);
+	$('#responseDlgBody').empty().append(msgBody);
 	$('#responseDlgOk').removeClass('btn-danger').click(function() {
 		$('#responseDlg').modal('hide');
 		$('#responseDlgOk').off('click');

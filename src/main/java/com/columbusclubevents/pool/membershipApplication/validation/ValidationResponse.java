@@ -1,11 +1,12 @@
-package com.columbusclubevents.pool.membershipApplication.model.validation;
+package com.columbusclubevents.pool.membershipApplication.validation;
 
 import java.util.List;
 
 public class ValidationResponse {
 	private String status;
 	private List<ErrorMessage> errorMessageList;
-
+	private String successIdentifier;
+	
 	public String getStatus() {
 		return status;
 	}
@@ -21,4 +22,14 @@ public class ValidationResponse {
 	public void setErrorMessageList(List<ErrorMessage> errorMessageList) {
 		this.errorMessageList = errorMessageList;
 	}
+
+	public String getSuccessIdentifier() {
+		return successIdentifier;
+	}
+
+	public void setSuccessIdentifier(String successIdentifier) {
+		this.successIdentifier = successIdentifier;
+	}
+	
+	
 }

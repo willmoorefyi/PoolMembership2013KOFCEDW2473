@@ -7,6 +7,7 @@ import java.util.Set;
 
 import javax.validation.Valid;
 
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,13 +22,16 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.columbusclubevents.pool.membershipApplication.model.Member;
+import com.columbusclubevents.pool.membershipApplication.model.MemberRequest;
 import com.columbusclubevents.pool.membershipApplication.model.MembershipCategory;
 import com.columbusclubevents.pool.membershipApplication.model.MembershipOption;
 import com.columbusclubevents.pool.membershipApplication.model.MembershipOptionsList;
-import com.columbusclubevents.pool.membershipApplication.model.validation.ErrorMessage;
-import com.columbusclubevents.pool.membershipApplication.model.validation.ValidationResponse;
+import com.columbusclubevents.pool.membershipApplication.paypal.PaypalWrapper;
 import com.columbusclubevents.pool.membershipApplication.repository.MemberRepository;
 import com.columbusclubevents.pool.membershipApplication.repository.MembershipCategoryRepository;
+import com.columbusclubevents.pool.membershipApplication.repository.MembershipOptionRepsository;
+import com.columbusclubevents.pool.membershipApplication.validation.ErrorMessage;
+import com.columbusclubevents.pool.membershipApplication.validation.ValidationResponse;
 
 @Controller
 public class ApplicationController {
@@ -37,9 +41,15 @@ public class ApplicationController {
 	private MembershipCategoryRepository memberCategoryRepo;
 	
 	@Autowired
+	private MembershipOptionRepsository memberOptionRepo;
+	
+	@Autowired
 	private MemberRepository memberRepo;
+	
+	@Autowired
+	private PaypalWrapper paypalWrapper;
 
-	@RequestMapping(value="/applicationBootstrap",method=RequestMethod.GET)
+	@RequestMapping(value="/applicationBootstrap.htm",method=RequestMethod.GET)
 	public String bootstrapForm(Model model){
 		log.debug("Received GET request on applicationBootstrap");
 		return "application-bootstrap";
@@ -54,9 +64,9 @@ public class ApplicationController {
 	}
 	
 	@RequestMapping(value="/submit-membership-form.json", method=RequestMethod.POST,consumes="application/json", produces="application/json")
-	public @ResponseBody ValidationResponse submitForm(Model model, @RequestBody @Valid Member member, BindingResult result) {
-		log.debug("Received POST request on submit-membership-form.json");
-		log.debug("Member returned: {}", member);
+	public @ResponseBody ValidationResponse submitForm(Model model, @RequestBody @Valid MemberRequest memberRequest, BindingResult result) {
+		log.debug("Received POST request on submit-membership-form.json with member request {}", memberRequest);
+		Member member = memberRequest.getMember();
 		ValidationResponse res = new ValidationResponse();
 		if(result.hasErrors()){
 			log.debug("Validation errors on input member form");
@@ -65,11 +75,19 @@ public class ApplicationController {
 		}
 		else {
 			log.debug("Validation of member form succeeded!");
-			//memberRepo.save(member);
+			MembershipOption opt = memberRequest.getMembershipOption();
+			String memberIdent = persistMember(member, opt);
+			res.setSuccessIdentifier(memberIdent);
 			res.setStatus("SUCCESS");
 		}
 
 		return res;
+	}
+	
+	@RequestMapping(value="/application-complete.htm")
+	public String showSuccessPage(Model model) {
+		log.debug("Application complete");
+		return "application-complete";
 	}
 	
 	@RequestMapping(value="/manage/manage-rates.htm",method= RequestMethod.GET)
@@ -135,7 +153,7 @@ public class ApplicationController {
 		List<FieldError> allErrors = result.getFieldErrors();
 		List<ErrorMessage> errorMessages = new ArrayList<ErrorMessage>();
 		for (FieldError objectError : allErrors) {
-			ErrorMessage error = new ErrorMessage(objectError.getField(), objectError.getField() + "  " + objectError.getDefaultMessage());
+			ErrorMessage error = new ErrorMessage(objectError.getField(), objectError.getDefaultMessage());
 			log.debug("Processed error: \"{}\" from object error \"{}\"", error, objectError);
 			errorMessages.add(error);
 		}
@@ -160,5 +178,40 @@ public class ApplicationController {
 		memberCategoryRepo.deleteAll();
 		memberCategoryRepo.save(memberCategories);
 		memberCategoryRepo.flush();
+	}
+	
+	/**
+	 * Persist the passed-in member into the datastore
+	 * @param member
+	 * @param opt
+	 */
+	@Transactional
+	private String persistMember(Member member, MembershipOption opt) {
+		log.debug("Member returned: {}", member);
+		//fetch the remaining option data from the backing store by the option key
+		opt = memberOptionRepo.findByOptionKey(opt.getOptionKey()).get(0);
+		log.debug("Found membership option {}", opt);
+		
+		//set the default member status
+		member.setMemberStatus("new");
+		
+		//set the membership properties retrieved from the membership options
+		member.setMemberCost(opt.getCost());
+		
+		//refetch the category to get all properties
+		MembershipCategory cat = memberCategoryRepo.findOne(opt.getMemberCategoryParent().getId());
+		log.debug("Setting membership category type on object: {}", cat);
+		member.setMemberType(cat.getTabDescription());
+		
+		//persist the member into the DB
+		log.debug("Persisting member info {}", member);
+		memberRepo.save(member);
+		log.debug("Entity persisted, now with ID {}", member.getId());
+		
+		//generate the code for the member going forward
+		String identifier = StringUtils.rightPad(StringUtils.left(
+				member.getLastName(), 4), 4, '_').concat(member.getId().toString());
+		
+		return identifier;
 	}
 }

@@ -6,4 +6,6 @@ import com.columbusclubevents.pool.membershipApplication.model.MembershipCategor
 
 public interface MembershipCategoryRepository extends JpaRepository<MembershipCategory, Long> {
 
+	//@Query("SELECT mo FROM MembershipCategory mo WHERE (:membershipOption) MEMBER OF (mo.memberOptions)")
+	//List<MembershipCategory> findByMembershipOption(@Param("membershipOption") MembershipOption membershipOption);
 }

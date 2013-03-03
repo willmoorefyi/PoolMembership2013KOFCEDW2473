@@ -1,4 +1,4 @@
-package com.columbusclubevents.pool.membershipApplication.model.validation;
+package com.columbusclubevents.pool.membershipApplication.validation;
 
 public class ErrorMessage {
 
