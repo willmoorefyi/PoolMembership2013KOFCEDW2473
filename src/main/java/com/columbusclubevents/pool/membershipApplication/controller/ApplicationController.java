@@ -19,6 +19,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.columbusclubevents.pool.membershipApplication.model.Member;
@@ -78,6 +79,7 @@ public class ApplicationController {
 			MembershipOption opt = memberRequest.getMembershipOption();
 			String memberIdent = persistMember(member, opt);
 			res.setSuccessIdentifier(memberIdent);
+			res.setLastName(member.getLastName());
 			res.setStatus("SUCCESS");
 		}
 
@@ -85,9 +87,21 @@ public class ApplicationController {
 	}
 	
 	@RequestMapping(value="/application-complete.htm")
-	public String showSuccessPage(Model model) {
-		log.debug("Application complete");
+	public String showSuccessPage(Model model, @RequestParam("memberId") String memberId, @RequestParam("lastName") String lastName) {
+		log.debug("Application complete detected wtih memberId '{}' and last name '{}'", memberId, lastName);
+		
+		Member member = retrieveMember(memberId, lastName);
+		log.debug("Executed search and member returned: {}", member);
+		
+		model.addAttribute("member", member);
 		return "application-complete";
+	}
+	
+
+	@RequestMapping(value="/retrieve-member.htm")
+	public String retrieveSuccessPage(Model model) {
+		log.debug("Received GET request on retrieve-member");
+		return "retrieve-member";
 	}
 	
 	@RequestMapping(value="/manage/manage-rates.htm",method= RequestMethod.GET)
@@ -194,6 +208,7 @@ public class ApplicationController {
 		
 		//set the default member status
 		member.setMemberStatus("new");
+		member.setMemberPaid(false);
 		
 		//set the membership properties retrieved from the membership options
 		member.setMemberCost(opt.getCost());
@@ -208,10 +223,61 @@ public class ApplicationController {
 		memberRepo.save(member);
 		log.debug("Entity persisted, now with ID {}", member.getId());
 		
+		/*
 		//generate the code for the member going forward
 		String identifier = StringUtils.rightPad(StringUtils.left(
 				member.getLastName(), 4), 4, '_').concat(member.getId().toString());
+		 */
 		
-		return identifier;
+		return member.getId().toString();
+	}
+	
+	/**
+	 * Fetch the member from the memberId
+	 * @param memberId The Member ID the user passed in
+	 * @param lastName the member last name
+	 * @return The Member object
+	 */
+	private Member retrieveMember(String memberId, String lastName) {
+		log.debug("Fetching member object from Id '{}' and last name '{}'", memberId, lastName);
+		try {
+			if(StringUtils.isBlank(memberId) || StringUtils.isBlank(lastName)) {
+				log.warn("Passed-in memberId '{}' or lastName '{}' has an empty value after trimming, returning null", memberId, lastName);
+				return null;
+			}
+			/*
+			String lastName4Chars = StringUtils.strip(StringUtils.left(memberId, 4), "_");
+			if(StringUtils.isBlank(lastName4Chars)) {
+				log.warn("Passed-in memberId '{}' has an empty name after trimming, returning null", memberId);
+				return null;
+			}
+			Long appId = Long.parseLong(memberId.substring(4));
+			List<Member> members = memberRepo.lastNameLikeAndId(lastName4Chars, lastName4Chars + "\uFFFD", appId);
+			*/
+			/*
+			List<Member> members = memberRepo.findByLastNameAndId(lastName, Long.parseLong(memberId));
+			log.debug("Executed member search, results: {}", members);
+			if(members.size() != 1) {
+				log.warn("Non-single result returned by query on member Id '{}' and last name '{}', invalid state, returning null", memberId, lastName);
+				return null;
+			}
+			else {
+				return members.get(0);
+			}
+			*/
+			Member member = memberRepo.findOne(Long.parseLong(memberId));
+			if(member != null && member.getLastName() != null && member.getLastName().equalsIgnoreCase(lastName)) {
+				log.debug("Found matching member '{}'", member);
+				return member;
+			}
+			else {
+				log.warn("Member Id found for ID '{}', but with last name '{}' and not passed-in last name '{}'. Returning null", new Object[] {memberId, (member == null ? null : member.getLastName()), lastName});
+				return null;
+			}
+		}
+		catch(NumberFormatException e) {
+			log.error("Passed-in member Id '{}' caused a NumberFormatException during memberId parsing. Presuming user entered invalid member Id and returning null", lastName, e);
+			return null;
+		}
 	}
 }
