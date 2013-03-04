@@ -34,7 +34,7 @@
 	              <div class="well well-large">
 	                 <h3>Resume Application</h3>
 	                 <p>Select this option if you are resuming a pool membership application for the summer of 2013 that you had previously saved.</p>
-	                 <p><a href="#" class="btn btn-block disabled" title="coming soon!">Resume</a></p>
+	                 <p><a class="btn btn-block" href="/retrieve-member.htm">Resume</a></p>
                  </div>
 	            </div>
 		      </div>

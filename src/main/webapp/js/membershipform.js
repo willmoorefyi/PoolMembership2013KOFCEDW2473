@@ -171,7 +171,9 @@ function submitForm() {
 			}
 			else {
 				//showSuccess("Success!", "Your membership application was succesfully received and stored. You will receive a response in the next few business days. Thanks for your interest!");
-				window.location.href="/application-complete.htm";
+				//window.location.href=successUrl;
+				var successParams = { 'memberId' : response.successIdentifier, 'lastName' : response.lastName };
+				successRedirect(successParams);
 			}
 			
 		}, 
@@ -246,6 +248,20 @@ function showError(errorLabel, errorBody) {
 		$('#responseDlgOk').off('click');
 	});
 	$('#responseDlg').modal('show');
+}
+
+/**
+ * Creates a form and submits it with the parameters specified to the success URL
+ * @param params The parameters to submit
+ */
+function successRedirect(params) {
+	var form = $('<form>').attr('method', 'post').attr('action', successUrl);
+	$.each(params, function(name, value) {
+		form.append($('<input>').attr('type','hidden').attr('name', name).val(value));
+	});
+	
+	$(document.body).append(form);
+	form.submit();
 }
 
 /**

@@ -10,9 +10,11 @@
       
 		<spring:url value="/submit-membership-form.json" var="formUrl" />
 		<spring:url value="/get-current-rates.json" var="currentRateUrl" />
+      <spring:url value="/application-complete.htm" var="successUrl" />
 		<script type="text/javascript">
 		   var formUrl = '${formUrl}';
 		   var currentRateUrl = '${currentRateUrl}';
+		   var successUrl = '${successUrl}';
 		</script>
       
       <![CDATA[<script src="/js/membershipform.js"></script>]]>

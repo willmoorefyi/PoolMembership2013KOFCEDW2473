@@ -1,5 +1,8 @@
+Fix errors in JSP validation that mark the entire project as in error.
 
 Refactor modal dialog boxes into a single tag and invoke the tag rather than copy/pasting code
 refactor memberOptionsTabs to be a taglib, so we can pass object parameters, per http://onjava.com/pub/a/onjava/2004/05/12/jsp2part4.html
 fix usage of table in membership-form.jspx (use divs / bootstrap)
 refactor Member to split into a person (Member) and an application status
+
+Figure out why the JPA queries don't work for MemberRepository

@@ -10,12 +10,17 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
+import javax.persistence.PrePersist;
+import javax.persistence.PreUpdate;
 import javax.validation.Valid;
 import javax.validation.constraints.Pattern;
 
+import org.apache.commons.lang.StringUtils;
 import org.codehaus.jackson.annotate.JsonManagedReference;
 import org.hibernate.validator.constraints.Email;
 import org.hibernate.validator.constraints.NotEmpty;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Represents a single member.  Should have getters /setters etc, but this just works.
@@ -25,7 +30,7 @@ import org.hibernate.validator.constraints.NotEmpty;
  */
 @Entity
 public class Member implements Serializable {
-	
+	Logger log = LoggerFactory.getLogger(Member.class);
 	private static final long serialVersionUID = 6864054721613306242L;
 
 	@Id
@@ -228,6 +233,22 @@ public class Member implements Serializable {
 		this.lastName = lastName;
 	}
 
+    @PreUpdate
+    @PrePersist
+    public void updateMemberValues() {
+    	log.debug("Converting values to appropriate case");
+    	this.firstName = StringUtils.upperCase(this.firstName);
+    	this.middleInitial = (this.middleInitial == null ? null : Character.toUpperCase(this.middleInitial));
+    	this.lastName = StringUtils.upperCase(this.lastName);
+    	
+    	this.addressLine1 = StringUtils.upperCase(this.addressLine1);
+    	this.addressLine2 = StringUtils.upperCase(this.addressLine2);
+    	this.city = StringUtils.upperCase(this.city);
+    	this.state = StringUtils.upperCase(this.state);
+    	
+    	this.email = StringUtils.lowerCase(this.email);
+    }
+	
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();

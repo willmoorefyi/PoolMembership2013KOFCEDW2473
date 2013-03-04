@@ -1,0 +1,45 @@
+<html xmlns:c="http://java.sun.com/jsp/jstl/core"  
+   xmlns:spring="http://www.springframework.org/tags" 
+   xmlns:jsp="http://java.sun.com/JSP/Page"
+   xmlns:tags="urn:jsptagdir:/WEB-INF/tags" >
+   
+   <jsp:output doctype-root-element="HTML" doctype-system="about:legacy-compat" />
+   <jsp:directive.page contentType="text/html;charset=UTF-8" />  
+   <head>  
+      <tags:header headerTitle="Welcome"></tags:header>
+      
+      <spring:url value="/application-complete.htm" var="formUrl" />
+      
+      <![CDATA[
+      <!-- HTML5 shim, for IE6-8 support of HTML5 elements, outside the taglib due to CDATA support -->
+      <!--[if lt IE 9]>
+        <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+      <![endif]-->
+      ]]>
+   </head>
+   <body class="body-blue">
+      <div class="page-wrapper">
+         <jsp:include page="include/header-kofc-pool.jspx"/>
+         <div class="container">
+            <div class="page-header">
+               <h1>Enter Your Information Below<br/><small>2013 Season, Knights of Columbus, Arlington Pool</small></h1>
+            </div>
+            <form class="form-horizontal" method="post" action="${formUrl}"> 
+               <div class="control-group">
+                  <label class="control-label" for="lastName">Last Name:</label>
+                  <div class="controls">
+                     <input id="lastName" name="lastName" type="text" class="inputFormElem span3" placeholder="Last Name" title="Last Name"></input>
+                  </div>
+               </div>
+               <div class="control-group">
+                  <label class="control-label" for="memberId">Application ID:</label>
+                  <div class="controls">
+                     <input id="memberId" name="memberId" type="text" class="inputFormElem span3" placeholder="Application ID" title="Application ID"></input>
+                  </div>
+               </div>
+               <button type="submit" class="btn btn-primary">Submit</button>
+            </form>
+         </div>
+      </div>
+   </body>
+</html>

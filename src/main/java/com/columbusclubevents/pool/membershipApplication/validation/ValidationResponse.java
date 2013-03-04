@@ -6,6 +6,7 @@ public class ValidationResponse {
 	private String status;
 	private List<ErrorMessage> errorMessageList;
 	private String successIdentifier;
+	private String lastName;
 	
 	public String getStatus() {
 		return status;
@@ -29,6 +30,14 @@ public class ValidationResponse {
 
 	public void setSuccessIdentifier(String successIdentifier) {
 		this.successIdentifier = successIdentifier;
+	}
+
+	public String getLastName() {
+		return lastName;
+	}
+
+	public void setLastName(String lastName) {
+		this.lastName = lastName;
 	}
 	
 	
