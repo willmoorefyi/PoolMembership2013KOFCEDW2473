@@ -24,6 +24,16 @@
             <div class="page-header">
                <h1>Your Application is Complete!<br/><small>2013 Season, Knights of Columbus, Arlington Pool</small></h1>
             </div>
+            <div class="hero-unit header-color-neutral">
+               <h2 class="successBar">Membership Application Number</h2>
+               <h2 class="successBar">${member.id}</h2>
+            </div>
+            <div class="row">
+               <div class="span12"><p class="lead text-info successBar">You will need to provide this number to access your application to make payments or other changes.</p></div>
+            </div>
+            <div class="row">
+               <div class="span12"><p class="text-info successBar">Please write it down and store in a safe place.</p></div>
+            </div>
             <form:form modelAttribute="member" class="application-form" action="${formUrl}">
                <form:hidden path="id" />
                <form:hidden path="lastName" />
@@ -92,14 +102,28 @@
                   <div class="control-group span1"><form:checkbox path="memberPaid" disabled="${'true'}"></form:checkbox></div>
                </div>
                <div class="form-bottom-spacer">&#160;</div>
-               <c:choose>
-	               <c:when test="${member.memberPaid}"> 
-	                  <button class="btn btn-primary " type="button" id="submitButton" disabled="disabled">Pay Now!</button>
-	               </c:when>
-	               <c:otherwise>
-                     <button class="btn btn-primary " type="button" id="submitButton" disabled="disabled">Pay Now!</button>
-	               </c:otherwise>
-               </c:choose>
+               <div class="row-fluid">
+                  <div class="span2">
+		               <c:choose>
+			               <c:when test="${member.memberPaid}"> 
+			                  <button class="btn btn-primary " type="submit" id="submitButton" disabled="disabled">Pay Now!</button>
+			               </c:when>
+			               <c:otherwise>
+		                     <button class="btn btn-primary " type="submit" id="submitButton">Pay Now!</button>
+			               </c:otherwise>
+		               </c:choose>
+	               </div>
+                  <div class="span2">
+                     <a href="https://www.paypal.com/webapps/mpp/paypal-popup" title="How PayPal Works" onclick="javascript:window.open('https://www.paypal.com/webapps/mpp/paypal-popup','WIPaypal','toolbar=no, location=no, directories=no, status=no, menubar=no, scrollbars=yes, resizable=yes, width=1060, height=700'); return false;">
+                        <img src="https://www.paypalobjects.com/webstatic/mktg/logo/bdg_payments_by_pp_2line.png" border="0" alt="Payments by PayPal"/>
+                     </a>
+                     <div style="text-align:center">
+	                     <a href="https://www.paypal.com/webapps/mpp/how-paypal-works"><font size="2" face="Arial" color="#0079CD">How PayPal Works</font></a>
+	                  </div>
+	                  <div>
+	                 </div>
+                  </div>
+               </div>
             </form:form>
          </div>
       </div>

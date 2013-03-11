@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -27,7 +28,9 @@ import com.columbusclubevents.pool.membershipApplication.model.MemberRequest;
 import com.columbusclubevents.pool.membershipApplication.model.MembershipCategory;
 import com.columbusclubevents.pool.membershipApplication.model.MembershipOption;
 import com.columbusclubevents.pool.membershipApplication.model.MembershipOptionsList;
-import com.columbusclubevents.pool.membershipApplication.paypal.PaypalWrapper;
+import com.columbusclubevents.pool.membershipApplication.paypal.PaypalRestWrapper;
+import com.columbusclubevents.pool.membershipApplication.paypal.json.request.PaymentCreditCard;
+import com.columbusclubevents.pool.membershipApplication.paypal.json.request.PaymentPaypal;
 import com.columbusclubevents.pool.membershipApplication.repository.MemberRepository;
 import com.columbusclubevents.pool.membershipApplication.repository.MembershipCategoryRepository;
 import com.columbusclubevents.pool.membershipApplication.repository.MembershipOptionRepsository;
@@ -46,9 +49,10 @@ public class ApplicationController {
 	
 	@Autowired
 	private MemberRepository memberRepo;
-	
+
 	@Autowired
-	private PaypalWrapper paypalWrapper;
+	private PaypalRestWrapper paypalWrapper;
+	//private PaypalAdaptivePaymentWrapper paypalWrapper;
 
 	@RequestMapping(value="/applicationBootstrap.htm",method=RequestMethod.GET)
 	public String bootstrapForm(Model model){
@@ -93,10 +97,72 @@ public class ApplicationController {
 		Member member = retrieveMember(memberId, lastName);
 		log.debug("Executed search and member returned: {}", member);
 		
-		model.addAttribute("member", member);
-		return "application-complete";
+		if(member != null) {
+			model.addAttribute("member", member);
+			return "application-complete";
+		}
+		else {
+			return "member-no-match";
+		}
+	}
+
+	@RequestMapping(value="/start-payment.htm")
+	public String startPayment(Model model, @RequestParam("id") String memberId, @RequestParam("lastName") String lastName) {
+		log.debug("Received request to start payment for member ID '{}' with last name '{}'", memberId, lastName);
+		//String redirectUrl = "https://www.paypal.com/";
+		//paypalWrapper.postPayment();
+		
+		//log.debug("Forwarding user to redirect url '{}'", redirectUrl);
+		//return new ModelAndView(new ExternalRedirectView(redirectUrl));
+
+		Member member = retrieveMember(memberId, lastName);
+		if(member != null) {
+			//prep the new models
+			PaymentCreditCard paymentCC = new PaymentCreditCard();
+			paymentCC.setMemberId(memberId);
+			paymentCC.setLastName(lastName);
+			PaymentPaypal paymentPaypal = new PaymentPaypal();
+			//paymentPaypal.setMemberId(memberId);
+			//paymentPaypal.setLastName(lastName);
+			model.addAttribute("paymentCC", paymentCC);
+			model.addAttribute("paymentPaypal", paymentPaypal);
+			return "create-payment";
+		}
+		else {
+			return "member-no-match";
+		}
 	}
 	
+	@RequestMapping(value="/submit-payment-cc.htm", method=RequestMethod.POST)
+	public String payCC(PaymentCreditCard paymentCC, BindingResult result) {
+		log.debug("Received request to pay with Credit Card");
+
+		String memberId = paymentCC.getMemberId();
+		String lastName = paymentCC.getLastName();
+		Member member = retrieveMember(memberId, lastName);
+		
+		if(member == null) {
+			log.error("Invalid model passed into payCC: '{}'", paymentCC);
+			return "member-no-match";
+		}
+		
+		log.debug("Setting additional properties on input CC request");
+		paymentCC.setFirstName(member.getFirstName());
+		paymentCC.setAmount(member.getMemberCost().toString());
+		
+		try {
+			if(paypalWrapper.postCCPayment(paymentCC)) {
+				return "success";
+			} 
+			else {
+				return "payment-error";
+			}
+		}
+		catch (Exception e) {
+			log.error("Exception occurred parsing credit card request");
+			return "payment-error";
+		}
+	}
 
 	@RequestMapping(value="/retrieve-member.htm")
 	public String retrieveSuccessPage(Model model) {

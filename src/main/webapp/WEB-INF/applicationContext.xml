@@ -22,8 +22,13 @@
 	
 	<!-- Load application properties file from the classpath -->
 	<bean id="propertyConfigurer" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
-	    <property name="location" value="classpath:paypal.properties" />
-	</bean> 
+	    <property name="locations">
+	        <list>
+	           <value>classpath:paypal.adaptivepayments.properties</value>
+              <value>classpath:paypal.rest.properties</value>
+           </list>
+       </property>
+   </bean> 
 
 	<!-- Activates various annotations to be detected in bean classes -->
 	<context:annotation-config />

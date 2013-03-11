@@ -1,0 +1,19 @@
+<span xmlns:c="http://java.sun.com/jsp/jstl/core"  
+   xmlns:spring="http://www.springframework.org/tags" 
+   xmlns:jsp="http://java.sun.com/JSP/Page"
+   xmlns:form="http://www.springframework.org/tags/form"
+   xmlns:tags="urn:jsptagdir:/WEB-INF/tags" >
+	<div class="page-header">
+	   <h1>Your Application is Complete!<br/><small>2013 Season, Knights of Columbus, Arlington Pool</small></h1>
+	</div>
+	<div class="hero-unit header-color-neutral">
+	   <h2 class="successBar">Membership Application Number</h2>
+	   <h2 class="successBar">${member.id}</h2>
+	</div>
+	<div class="row">
+	   <div class="span12"><p class="lead text-info successBar">You will need to provide this number to access your application to make payments or other changes.</p></div>
+	</div>
+	<div class="row">
+	   <div class="span12"><p class="text-info successBar">Please write it down and store in a safe place.</p></div>
+	</div>
+</span>

@@ -23,18 +23,23 @@
 	</properties>
 
 	<dependencies>
-	  <!-- Custom Dependencies -->
-      <dependency>
-         <groupId>com.paypal</groupId>
-         <artifactId>paypal-adaptive</artifactId>
-         <version>0.0.1-SNAPSHOT</version>
-      </dependency>
+      <!-- Custom Dependencies -->
+		<dependency>
+			<groupId>com.paypal.sdk</groupId>
+			<artifactId>rest-api-sdk</artifactId>
+			<version>0.5.2</version>
+		</dependency>
       
       <!-- Apache Commons -->
       <dependency>
 		   <groupId>commons-lang</groupId>
 		   <artifactId>commons-lang</artifactId>
 		   <version>2.6</version>
+		</dependency>
+		<dependency>
+			<groupId>commons-codec</groupId>
+			<artifactId>commons-codec</artifactId>
+			<version>1.7</version>
 		</dependency>
 	
 		<!-- Google App Engine dependencies -->

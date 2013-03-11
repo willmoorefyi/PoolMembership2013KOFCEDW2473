@@ -138,4 +138,8 @@
 
 .inputFormElem {
 	width: 100%;
-} 
+}
+
+.successBar {
+	text-align: center;
+}
