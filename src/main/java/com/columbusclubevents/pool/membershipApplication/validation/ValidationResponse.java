@@ -7,6 +7,7 @@ public class ValidationResponse {
 	private List<ErrorMessage> errorMessageList;
 	private String successIdentifier;
 	private String lastName;
+	private String url;
 	
 	public String getStatus() {
 		return status;
@@ -38,6 +39,14 @@ public class ValidationResponse {
 
 	public void setLastName(String lastName) {
 		this.lastName = lastName;
+	}
+
+	public String getUrl() {
+		return url;
+	}
+
+	public void setUrl(String url) {
+		this.url = url;
 	}
 	
 	

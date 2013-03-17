@@ -98,6 +98,8 @@ public class Member implements Serializable {
 	}
 
 	@NotEmpty(message="You must specify a state")
+	@Pattern(regexp="^(A[LKSZRAEP]|C[AOT]|D[EC]|F[LM]|G[AU]|HI|I[ADLN]|K[SY]|LA|M[ADEHINOPST]|N[CDEHJMVY]|O[HKR]|P[ARW]|RI|S[CD]|T[NX]|UT|V[AIT]|W[AIVY])$",
+			message="Please enter a valid 2-character US state code")
 	public String getState() {
 		return state;
 	}

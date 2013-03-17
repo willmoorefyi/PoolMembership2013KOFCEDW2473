@@ -5,4 +5,7 @@ refactor memberOptionsTabs to be a taglib, so we can pass object parameters, per
 fix usage of table in membership-form.jspx (use divs / bootstrap)
 refactor Member to split into a person (Member) and an application status
 
+reduce copy-paste code between javascript page files
+Improve hard-coded "SUCCESS" and "FAIL" statuses returned to JSP pages from controller to more generic handler (client and server-side).
+
 Figure out why the JPA queries don't work for MemberRepository

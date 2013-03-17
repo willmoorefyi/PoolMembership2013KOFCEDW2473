@@ -170,8 +170,6 @@ function submitForm() {
 				processServerErrors(response.errorMessageList);
 			}
 			else {
-				//showSuccess("Success!", "Your membership application was succesfully received and stored. You will receive a response in the next few business days. Thanks for your interest!");
-				//window.location.href=successUrl;
 				var successParams = { 'memberId' : response.successIdentifier, 'lastName' : response.lastName };
 				successRedirect(successParams);
 			}

@@ -16,7 +16,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
-import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -40,6 +39,9 @@ import com.columbusclubevents.pool.membershipApplication.validation.ValidationRe
 @Controller
 public class ApplicationController {
 	Logger log = LoggerFactory.getLogger(ApplicationController.class);
+	
+	private static final String RESPONSE_SUCCESS = "SUCCESS";
+	private static final String RESPONSE_FAILURE = "FAIL";
 	
 	@Autowired
 	private MembershipCategoryRepository memberCategoryRepo;
@@ -72,22 +74,19 @@ public class ApplicationController {
 	public @ResponseBody ValidationResponse submitForm(Model model, @RequestBody @Valid MemberRequest memberRequest, BindingResult result) {
 		log.debug("Received POST request on submit-membership-form.json with member request {}", memberRequest);
 		Member member = memberRequest.getMember();
-		ValidationResponse res = new ValidationResponse();
 		if(result.hasErrors()){
 			log.debug("Validation errors on input member form");
-			res.setStatus("FAIL");
-			res.setErrorMessageList(processErrors(result));
+			return createErrorResponse(processErrors(result));
 		}
 		else {
 			log.debug("Validation of member form succeeded!");
 			MembershipOption opt = memberRequest.getMembershipOption();
 			String memberIdent = persistMember(member, opt);
+			ValidationResponse res = createSuccessResponse();
 			res.setSuccessIdentifier(memberIdent);
 			res.setLastName(member.getLastName());
-			res.setStatus("SUCCESS");
+			return res;
 		}
-
-		return res;
 	}
 	
 	@RequestMapping(value="/application-complete.htm")
@@ -118,12 +117,8 @@ public class ApplicationController {
 		Member member = retrieveMember(memberId, lastName);
 		if(member != null) {
 			//prep the new models
-			PaymentCreditCard paymentCC = new PaymentCreditCard();
-			paymentCC.setMemberId(memberId);
-			paymentCC.setLastName(lastName);
+			PaymentCreditCard paymentCC = PaymentCreditCard.fromMember(member);
 			PaymentPaypal paymentPaypal = new PaymentPaypal();
-			//paymentPaypal.setMemberId(memberId);
-			//paymentPaypal.setLastName(lastName);
 			model.addAttribute("paymentCC", paymentCC);
 			model.addAttribute("paymentPaypal", paymentPaypal);
 			return "create-payment";
@@ -133,10 +128,53 @@ public class ApplicationController {
 		}
 	}
 	
-	@RequestMapping(value="/submit-payment-cc.htm", method=RequestMethod.POST)
-	public String payCC(PaymentCreditCard paymentCC, BindingResult result) {
-		log.debug("Received request to pay with Credit Card");
+	@RequestMapping(value="/submit-payment-cc.json", method=RequestMethod.POST, consumes="application/json", produces="application/json")
+	public @ResponseBody ValidationResponse payCC(Model model, @RequestBody @Valid PaymentCreditCard paymentCC, BindingResult result) {
+		log.debug("Received request to pay with Credit Card: {}", paymentCC);
+		
+		//handle any binding errors
+		if(result.hasErrors()){
+			log.debug("Validation errors on input payment form");
+			return createErrorResponse(processErrors(result));
+		}
+		
+		String memberId = paymentCC.getMemberId();
+		String lastName = paymentCC.getLastName();
+		Member member = retrieveMember(memberId, lastName);
 
+		//make sure the member is valid.
+		if(member == null) {
+			log.error("Invalid model passed into payCC: '{}'", paymentCC);
+			return createSingleErrorResponse("memberId", "No matching member can be found for the combination of member ID and last name provided.");
+		}
+
+		log.debug("Setting additional properties on input CC request");
+		paymentCC.setFirstName(member.getFirstName());
+		paymentCC.setAmount(member.getMemberCost().toString());
+		
+		try {
+			if(paypalWrapper.postCCPayment(paymentCC)) {
+				ValidationResponse res = createSuccessResponse();
+				res.setUrl("/payment-complete");
+				return res;
+			} 
+			else {
+				log.error("Invalid model passed into payCC: '{}'", paymentCC);
+				return createSingleErrorResponse("memberId", "Payment unable to be processed by Paypal.");
+			}
+		}
+		catch (Exception e) {
+			log.error("Exception occurred parsing credit card request", e);
+			return createSingleErrorResponse("memberId", "Error occurred during paypal processing.");
+		}
+	}
+	/*
+	public String payCC(@RequestBody MultiValueMap<String, String> formInput, BindingResult result) {
+		log.debug("Received request to pay with Credit Card");
+				
+		log.debug("Form input contained map '{}'", formInput);
+		PaymentCreditCard paymentCC = PaymentCreditCard.fromMultiValueMap(formInput);
+		
 		String memberId = paymentCC.getMemberId();
 		String lastName = paymentCC.getLastName();
 		Member member = retrieveMember(memberId, lastName);
@@ -159,10 +197,11 @@ public class ApplicationController {
 			}
 		}
 		catch (Exception e) {
-			log.error("Exception occurred parsing credit card request");
+			log.error("Exception occurred parsing credit card request", e);
 			return "payment-error";
 		}
 	}
+	*/
 
 	@RequestMapping(value="/retrieve-member.htm")
 	public String retrieveSuccessPage(Model model) {
@@ -238,6 +277,43 @@ public class ApplicationController {
 			errorMessages.add(error);
 		}
 		return errorMessages;
+	}
+	
+	/**
+	 * Create a simple success response
+	 * @return The ValidationResponse object, with the correct Success status set.
+	 */
+	private ValidationResponse createSuccessResponse() {
+		ValidationResponse res = new ValidationResponse();
+		res.setStatus(RESPONSE_SUCCESS);
+		return res;
+	}
+	
+	/**
+	 * Generate an error validation response with a list of error messages
+	 * @param errorMessages
+	 * @return The validation response object
+	 */
+	private ValidationResponse createErrorResponse(List<ErrorMessage> errorMessages) {
+		ValidationResponse res = new ValidationResponse();
+		res.setStatus(RESPONSE_FAILURE);
+		res.setErrorMessageList(errorMessages);
+		return res;
+	}
+	
+	/**
+	 * Create an error response with a single error message
+	 * @param field The field to attach the error message to (for Spring forms)
+	 * @param msg The error message to display)
+	 * @return The validation response object
+	 */
+	private ValidationResponse createSingleErrorResponse(String field, String msg) {
+		log.debug("Creating error message for field '{}' with message '{}'");
+		ErrorMessage error = new ErrorMessage(field, msg);
+		List<ErrorMessage> errorMessages = new ArrayList<ErrorMessage>();
+		errorMessages.add(error);
+		return createErrorResponse(errorMessages);
+		
 	}
 	
 	//TODO Update so that we are updating selected entites, rather than dropping and re-adding
