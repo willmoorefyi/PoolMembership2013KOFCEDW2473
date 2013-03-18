@@ -1,7 +1,7 @@
 var totalRelations=0;
 	
 $(document).ready(function() {
-	$('#relation-question').tooltip();
+	//$('#relation-question').tooltip();
 	$('#addRelationButton').click(addRelationTableRow);
 	$('#submitButton').click(confirmForm);
 	$('#confirmDlgOk').click(submitForm);
@@ -19,23 +19,25 @@ function addRelationTableRow() {
    $('#RelationTable > tbody:last').append($('<tr>')
       .append($('<td>')
          .append($('<input>')
-            .attr('id', 'relationFirstName' + totalRelations).attr('name', 'firstName').attr('type', 'text').attr('placeholder', 'First Name').attr('title', 'First Name') 
+            .attr('id', 'relationFirstName' + totalRelations).attr('name', 'firstName').attr('type', 'text').attr('placeholder', 'First Name').attr('title', 'First Name').attr('class', 'span2') 
          )
       ).append($('<td>')
          .append($('<input>')
-            .attr('id', 'relationLastName' + totalRelations).attr('name', 'lastName').attr('type', 'text').attr('placeholder', 'Last Name').attr('title', 'Last Name') 
+            .attr('id', 'relationLastName' + totalRelations).attr('name', 'lastName').attr('type', 'text').attr('placeholder', 'Last Name').attr('title', 'Last Name').attr('class', 'span2')
          )
       ).append($('<td>')
          .append($('<select>')
             .attr('id', 'relationType' + totalRelations)
             .attr('name', 'relationType')
-            .append('<option value="Spouse">Spouse</option>')
-            .append('<option value="Child">Child</option>')
-            .append('<option value="Parent">Parent / Grandparent</option>')
-            .append('<option value="Nanny">Nanny / Caretaker</option>')
-            .append('<option value="Other">Other Family</option>')
+            .attr('class', 'span3')
+            .append('<option value="SPOUSE">Spouse</option>')
+            .append('<option value="CHILD">Child</option>')
+            .append('<option value="NANNY">Nanny / Caretaker</option>')
+            .append('<option value="OTHER">Other (Please Explain)</option>')
+            .on('change', relationChange)
          )
       ).append($('<td>')
+	  ).append($('<td>')
          .append($('<i>')
     		.attr('class', 'icon-remove').text(' ').hover(function() {
     			$(this).addClass('icon-highlight-hover');
@@ -50,6 +52,23 @@ function addRelationTableRow() {
    );
    $('#relationType'+totalRelations).prop("selectedIndex", -1);
    totalRelations++;
+}
+
+/**
+ * Event to fire when the relation type is changed.  Will create a follow-up input when appropriate (for age or description)
+ * @param event The event that triggered this
+ */
+function relationChange(event) {
+	var selValue = $(this).val(); 
+	var otherTd = $(this).parent('td').next('td'); 
+	otherTd.empty();
+	
+	if(selValue == 'CHILD') {
+		otherTd.append($('<input>').attr('name', 'extraData').attr('type', 'text').attr('placeholder', 'Age').attr('title', 'Age').attr('pattern', '\\d+').attr('class', 'span1'));
+	}
+	else if(selValue == 'OTHER') {
+		otherTd.append($('<input>').attr('name', 'extraData').attr('type', 'text').attr('placeholder', 'Details').attr('title', 'Details').attr('class', 'span3'));
+	}
 }
 
 /**
@@ -98,8 +117,8 @@ function setCost(val) {
  */
 function confirmForm() {
 	//verify a member option has been selected
-	if($('#application-form #rateTabsContent input[name=memberOption]:checked').length == 0 || $('#application-form #paymentMethod input[name=paymentOption]:checked').length == 0) {
-		showError('Invalid Submission', 'You must select a membership option and payment option to submit your membership application form.');
+	if($('#application-form #rateTabsContent input[name=memberOption]:checked').length == 0 ) { //|| $('#application-form #paymentMethod input[name=paymentOption]:checked').length == 0
+		showError('Invalid Submission', 'You must select a membership option to submit your membership application form.');
 	}
 	else {
 		$('#confirmDlg').modal('show');
@@ -138,6 +157,7 @@ function submitForm() {
 		member.dependents[index].name = { };
 		serializeFormObject($(this), member.dependents[index].name, 'input[name="firstName"],input[name="lastName"]');
 		serializeFormObject($(this), member.dependents[index], 'select[name="relationType"]');
+		serializeFormObject($(this), member.dependents[index], 'input[name="extraData"]');
 	});
 	
 	//retrieve the membership option
@@ -158,7 +178,7 @@ function submitForm() {
 	}
 	
 	//serialize the payment selection
-	serializeFormObject(form, member, '#paymentMethod input:checked');
+	//serializeFormObject(form, member, '#paymentMethod input:checked');
 	
 	$.ajax(formUrl, {
 		data: JSON.stringify(memberRequest),
@@ -170,7 +190,7 @@ function submitForm() {
 				processServerErrors(response.errorMessageList);
 			}
 			else {
-				var successParams = { 'memberId' : response.successIdentifier, 'lastName' : response.lastName };
+				var successParams = { 'id' : response.successIdentifier, 'lastName' : response.lastName };
 				successRedirect(successParams);
 			}
 			

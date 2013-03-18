@@ -1,0 +1,43 @@
+<html xmlns:c="http://java.sun.com/jsp/jstl/core"  
+   xmlns:spring="http://www.springframework.org/tags" 
+   xmlns:jsp="http://java.sun.com/JSP/Page"
+   xmlns:form="http://www.springframework.org/tags/form"
+   xmlns:tags="urn:jsptagdir:/WEB-INF/tags" >
+   
+   <jsp:output doctype-root-element="HTML" doctype-system="about:legacy-compat" />
+   <jsp:directive.page contentType="text/html;charset=UTF-8" />  
+   <head>  
+      <tags:header headerTitle="Application Complete"></tags:header>
+      <spring:url value="/application-complete.htm" var="formUrl" />
+      
+      <![CDATA[<script src="/js/paymentComplete.js"></script>]]>
+      <![CDATA[
+      <!-- HTML5 shim, for IE6-8 support of HTML5 elements, outside the taglib due to CDATA support -->
+      <!--[if lt IE 9]>
+        <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+      <![endif]-->
+      ]]>
+   </head>
+   <body class="body-blue">
+      <div class="page-wrapper">
+         <jsp:include page="include/header-kofc-pool.jspx"/>
+         <div class="container">
+            <form:form id="submitForm" modelAttribute="member" class="application-form" action="${formUrl}">
+               <form:hidden path="id" />
+               <form:hidden path="lastName" />
+            </form:form>
+            <div class="page-header">
+               <h1>Payment Successfully Processed!<br/><small>2013 Season, Knights of Columbus, Arlington Pool</small></h1>
+            </div>
+            <div class="row">
+               <div class="span12"><h3>You will receive your welcome packet soon.</h3></div>
+            </div>
+            <div class="form-bottom-spacer">&#160;</div>
+            <div class="row">
+               <div class="span12"><p>You will be redirected back to the application complete page in 10 seconds.</p></div>
+            </div>
+         </div>
+
+      </div>
+   </body>
+</html>

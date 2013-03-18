@@ -32,6 +32,8 @@ public class Dependent implements Serializable {
 	private PersonName name;
 	
 	private String relationType;
+	
+	private String extraData;
 
 	public Key getId() {
 		return Id;
@@ -70,10 +72,21 @@ public class Dependent implements Serializable {
 	public void setRelationType(String relationType) {
 		this.relationType = relationType;
 	}
+	
+	public String getExtraData() {
+		return extraData;
+	}
+
+	public void setExtraData(String extraData) {
+		this.extraData = extraData;
+	}
 
 	@Override
 	public String toString() {
-		return "Dependent [Id=" + Id + ", name=" + name + ", relationType="
-				+ relationType + "]";
+		StringBuilder builder = new StringBuilder();
+		builder.append("Dependent [Id=").append(Id).append(", name=").append(name)
+				.append(", relationType=").append(relationType)
+				.append(", extraData=").append(extraData).append("]");
+		return builder.toString();
 	}
 }

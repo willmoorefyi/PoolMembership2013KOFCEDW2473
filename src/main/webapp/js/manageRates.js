@@ -44,7 +44,7 @@ function addRateFormRow(inputData) {
 			.append(createFormEntryElem('text', 'tabDescription', 'Tab Description', 'span3', inputData && inputData.tabDescription ? inputData.tabDescription : ''))
 			.append(createFormEntryElem('textarea', 'userDescription', 'Long Description', 'span7', inputData && inputData.userDescription ? inputData.userDescription : '', 3))
 			.append(createFormEntryElem('checkbox', 'validationRequired', 'Validation Required', '', inputData && inputData.validationRequired ? inputData.validationRequired : ''))
-			.append(createFormEntryElem('textarea', 'validationText', 'Validation Text', 'span7', inputData && inputData.validationRequired ? inputData.validationRequired : ''))
+			.append(createFormEntryElem('textarea', 'validationText', 'Validation Text', 'span7', inputData && inputData.validationText ? inputData.validationText : ''))
 			.append(createFormEntryElem('text', 'validationHint', 'Validation Hint (Hover)', 'span3', inputData && inputData.validationHint ? inputData.validationHint : ''))
 			.append(createFormEntryElem('text', 'validationConstraint', 'Validation Constraint (RegEx)', 'span7', inputData && inputData.validationConstraint ? inputData.validationConstraint : ''))
 			.append($('<div>').addClass('row-fluid')

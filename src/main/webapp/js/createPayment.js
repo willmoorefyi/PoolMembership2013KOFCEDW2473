@@ -22,6 +22,11 @@ function confirmForm(elem) {
 }
 
 
+/**
+ * Submit the credit card form, called when "ok" is clicked on the dialog
+ * @param event The event that triggers this method
+ * @returns {Boolean} Will always return false, to prevent event bubbling
+ */
 function submitCCForm(event) {
 	disableConfirmForm();
 	
@@ -42,11 +47,10 @@ function submitCCForm(event) {
 				processServerErrors(response.errorMessageList);
 			}
 			else {
-				var successParams = { };
+				var successParams = { 'id' : response.successIdentifier, 'lastName' : response.lastName };
 				var url = response.url;
 				successRedirect(successParams, url);
 			}
-			
 		}, 
 		error: function(jqXHR, textStatus, errorThrown) {
 			showError('Server Error', 'There were errors with your submission. Server Responded with ' + textStatus + ': ' + errorThrown);

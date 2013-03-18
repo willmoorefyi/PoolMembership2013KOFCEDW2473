@@ -313,6 +313,7 @@
 				<artifactId>maven-datanucleus-plugin</artifactId>
 				<version>3.0.2</version>
 				<configuration>
+               <fork>false</fork>
 					<api>JPA</api>
 					<persistenceUnitName>transactions-optional</persistenceUnitName>
 					<verbose>true</verbose>

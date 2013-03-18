@@ -22,8 +22,10 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import com.columbusclubevents.pool.membershipApplication.model.Dependent;
 import com.columbusclubevents.pool.membershipApplication.model.Member;
 import com.columbusclubevents.pool.membershipApplication.model.MemberRequest;
+import com.columbusclubevents.pool.membershipApplication.model.MemberStatus;
 import com.columbusclubevents.pool.membershipApplication.model.MembershipCategory;
 import com.columbusclubevents.pool.membershipApplication.model.MembershipOption;
 import com.columbusclubevents.pool.membershipApplication.model.MembershipOptionsList;
@@ -71,14 +73,18 @@ public class ApplicationController {
 	}
 	
 	@RequestMapping(value="/submit-membership-form.json", method=RequestMethod.POST,consumes="application/json", produces="application/json")
-	public @ResponseBody ValidationResponse submitForm(Model model, @RequestBody @Valid MemberRequest memberRequest, BindingResult result) {
+	public @ResponseBody ValidationResponse submitMemberForm(Model model, @RequestBody @Valid MemberRequest memberRequest, BindingResult result) {
 		log.debug("Received POST request on submit-membership-form.json with member request {}", memberRequest);
-		Member member = memberRequest.getMember();
 		if(result.hasErrors()){
 			log.debug("Validation errors on input member form");
 			return createErrorResponse(processErrors(result));
 		}
 		else {
+			Member member = memberRequest.getMember();
+			List<ErrorMessage> dependentErrors = internalValidateMemberDependents(member);
+			if(dependentErrors.size() > 0) {
+				return createErrorResponse(dependentErrors);
+			}
 			log.debug("Validation of member form succeeded!");
 			MembershipOption opt = memberRequest.getMembershipOption();
 			String memberIdent = persistMember(member, opt);
@@ -90,8 +96,8 @@ public class ApplicationController {
 	}
 	
 	@RequestMapping(value="/application-complete.htm")
-	public String showSuccessPage(Model model, @RequestParam("memberId") String memberId, @RequestParam("lastName") String lastName) {
-		log.debug("Application complete detected wtih memberId '{}' and last name '{}'", memberId, lastName);
+	public String showSuccessPage(Model model, @RequestParam("id") String memberId, @RequestParam("lastName") String lastName) {
+		log.debug("Application complete detected wtih id '{}' and last name '{}'", memberId, lastName);
 		
 		Member member = retrieveMember(memberId, lastName);
 		log.debug("Executed search and member returned: {}", member);
@@ -154,18 +160,24 @@ public class ApplicationController {
 		
 		try {
 			if(paypalWrapper.postCCPayment(paymentCC)) {
+				member.setMemberPaid(true);
+				member.setMemberStatus(MemberStatus.PAID);
+				log.debug("Persisting member info {}", member);
+				memberRepo.save(member);
 				ValidationResponse res = createSuccessResponse();
-				res.setUrl("/payment-complete");
+				res.setUrl("/payment-complete.htm");
+				res.setSuccessIdentifier(member.getId().toString());
+				res.setLastName(member.getLastName());
 				return res;
 			} 
 			else {
 				log.error("Invalid model passed into payCC: '{}'", paymentCC);
-				return createSingleErrorResponse("memberId", "Payment unable to be processed by Paypal.");
+				return createSingleErrorResponse("id", "Payment unable to be processed by Paypal.");
 			}
 		}
 		catch (Exception e) {
 			log.error("Exception occurred parsing credit card request", e);
-			return createSingleErrorResponse("memberId", "Error occurred during paypal processing.");
+			return createSingleErrorResponse("id", "Error occurred during paypal processing.");
 		}
 	}
 	/*
@@ -202,6 +214,22 @@ public class ApplicationController {
 		}
 	}
 	*/
+	
+	@RequestMapping(value="/payment-complete.htm")
+	public String showPaymentSuccessPage(Model model, @RequestParam("id") String memberId, @RequestParam("lastName") String lastName) {
+
+		Member member = retrieveMember(memberId, lastName);
+		log.debug("Executed search and member returned: {}", member);
+		
+		if(member != null) {
+			model.addAttribute("member", member);
+			return "payment-complete";
+		}
+		else {
+			return "member-no-match";
+		}
+	}
+
 
 	@RequestMapping(value="/retrieve-member.htm")
 	public String retrieveSuccessPage(Model model) {
@@ -313,7 +341,6 @@ public class ApplicationController {
 		List<ErrorMessage> errorMessages = new ArrayList<ErrorMessage>();
 		errorMessages.add(error);
 		return createErrorResponse(errorMessages);
-		
 	}
 	
 	//TODO Update so that we are updating selected entites, rather than dropping and re-adding
@@ -349,7 +376,7 @@ public class ApplicationController {
 		log.debug("Found membership option {}", opt);
 		
 		//set the default member status
-		member.setMemberStatus("new");
+		member.setMemberStatus(MemberStatus.NEW);
 		member.setMemberPaid(false);
 		
 		//set the membership properties retrieved from the membership options
@@ -372,6 +399,36 @@ public class ApplicationController {
 		 */
 		
 		return member.getId().toString();
+	}
+	
+	/**
+	 * Validate the member object's dependents passed-in.  These cannot be custom validated as they are dependent on other field values
+	 * @param member The member object to validate
+	 * @return A list of Error Messages responses containing any errors that were identified
+	 */
+	private List<ErrorMessage> internalValidateMemberDependents(Member member) {
+		List<ErrorMessage> errorMessages = new ArrayList<ErrorMessage>();
+		boolean hasNanny = false;
+		for(Dependent dependent : member.getDependents()) {
+			if(dependent.getRelationType().equals("NANNY")) {
+				if(hasNanny) {
+					errorMessages.add(new ErrorMessage("relationType", "You cannot have multiple nanny / caretakers selected."));
+				}
+				hasNanny = true;
+			}
+			else if(dependent.getRelationType().equals("CHILD")) {
+				if(StringUtils.isEmpty(dependent.getExtraData()) || !StringUtils.isNumeric(dependent.getExtraData())) {
+					errorMessages.add(new ErrorMessage("relationType", "You specified a relation type of \"Child\", but did not provide a valid age. This field is required"));
+				}
+			}
+			else if(dependent.getRelationType().equals("OTHER")) {
+				if(StringUtils.isEmpty(dependent.getExtraData())) {
+					errorMessages.add(new ErrorMessage("relationType", "You specified a relation type of \"Other\", but did not provide an explanation. This field is required"));
+				}
+			}
+		}
+		
+		return errorMessages;
 	}
 	
 	/**

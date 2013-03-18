@@ -67,18 +67,23 @@
                   <div class="control-group span6"><input id="email"    name="email"   type="email"   class="inputFormElem" placeholder="Email" title="Email"></input></div>
                </div>
                <legend>Family Members</legend>
+               <p>Family Members are individuals who live at one address.  You may include one babysitter or nanny as part of your family.</p>
                <table id="RelationTable" class="table table-hover">
                   <thead>
                      <tr>
-                        <th>First Name</th>
-                        <th>Last Name</th>
-                        <th>Relation <i id="relation-question" class="icon-question-sign" data-toggle="tooltip" title="When registering a family account, you can add all members of your household as dependents, as well as 1 caretaker or nanny."> </i></th>
+                        <th class="span2">First Name</th>
+                        <th class="span2">Last Name</th>
+                        <th class="span3">Relation
+                           <!-- <i id="relation-question" class="icon-question-sign" data-toggle="tooltip" title="Family Members are individuals who live at one address.  You may include one babysitter or nanny as part of your family."> </i> --> 
+                        </th>
+                        <th class="span3">Other Information</th>
+                        <th class="span1">&#160;</th>
                      </tr>
                   </thead>
                   <tbody></tbody>
                </table>
                <button id="addRelationButton" class="btn" type="button">Add Row</button>
-               <legend>Membership Information</legend>
+               <legend>Pool Membership Options</legend>
                <p>Select Your Membership Option</p>
                <jsp:include page="include/memberOptionsTabs.jspx"/>
                <div class="form-bottom-spacer"><jsp:text> </jsp:text></div>
@@ -87,12 +92,14 @@
                   <input type="text" id="finalCost" placeholder="Cost" class="span3" disabled=""></input>
                </div>
                <div class="form-bottom-spacer"><jsp:text> </jsp:text></div>
+               <!-- 
                <legend>Payment Method</legend>
                <div class="controls controls-row" id="paymentMethod">
                   <tags:paymentOption inputId="paymentOptionCC" inputValue="paymentOptionCC" inputName="paymentOption" inputText="Pay by Credit Card (using PayPal) Now"></tags:paymentOption>
                   <tags:paymentOption inputId="paymentOptionCashCheck" inputValue="paymentOptionCashCheck" inputName="paymentOption" inputText="Pay by Cash or Check Later"></tags:paymentOption>
                </div>
                <div class="form-bottom-spacer"><jsp:text> </jsp:text></div>
+                -->
                <button class="btn btn-primary" type="button" id="submitButton">Submit</button>
             </form>
 	         <tags:modal modalId="confirmDlg" titleElemId="confirmDlgTitle"

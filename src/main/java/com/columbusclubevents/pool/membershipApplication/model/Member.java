@@ -1,10 +1,13 @@
 package com.columbusclubevents.pool.membershipApplication.model;
 
 import java.io.Serializable;
+import java.util.Date;
 import java.util.List;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -55,10 +58,13 @@ public class Member implements Serializable {
 	
 	private String validationInput;
 	private String memberType;
-	private String memberStatus;
+	private MemberStatus memberStatus;
 	private Integer memberCost;
-	private String paymentOption;
+	//private String paymentOption;
 	private Boolean memberPaid;
+	
+	//not handling time zones, no idea what GAE is doing with time zones here.
+	private Date applicationTime;
 	
 	//google doesn't really handle unowned relationships in JPA well
 	//private MembershipOption membershipOption;
@@ -176,11 +182,12 @@ public class Member implements Serializable {
 		this.memberCost = memberCost;
 	}
 
-	public String getMemberStatus() {
+    @Enumerated(EnumType.STRING)
+	public MemberStatus getMemberStatus() {
 		return memberStatus;
 	}
 
-	public void setMemberStatus(String memberStatus) {
+	public void setMemberStatus(MemberStatus memberStatus) {
 		this.memberStatus = memberStatus;
 	}
 
@@ -192,6 +199,7 @@ public class Member implements Serializable {
 		this.memberType = memberType;
 	}
 
+	/*
 	@NotEmpty(message="You must specify a payment option")
 	public String getPaymentOption() {
 		return paymentOption;
@@ -200,6 +208,7 @@ public class Member implements Serializable {
 	public void setPaymentOption(String paymentOption) {
 		this.paymentOption = paymentOption;
 	}
+	*/
 
 	public Boolean getMemberPaid() {
 		return memberPaid;
@@ -235,8 +244,15 @@ public class Member implements Serializable {
 		this.lastName = lastName;
 	}
 
+	public Date getApplicationTime() {
+		return applicationTime;
+	}
+
+	public void setApplicationTime(Date applicationTime) {
+		this.applicationTime = applicationTime;
+	}
+
     @PreUpdate
-    @PrePersist
     public void updateMemberValues() {
     	log.debug("Converting values to appropriate case");
     	this.firstName = StringUtils.upperCase(this.firstName);
@@ -249,6 +265,14 @@ public class Member implements Serializable {
     	this.state = StringUtils.upperCase(this.state);
     	
     	this.email = StringUtils.lowerCase(this.email);
+    }
+    
+    @PrePersist
+    public void setApplicationDate() {
+    	log.debug("Setting application date");
+    	this.applicationTime = new Date();
+    	
+    	this.updateMemberValues();
     }
 	
 	@Override
@@ -269,7 +293,7 @@ public class Member implements Serializable {
 				.append(memberType).append(", memberStatus=")
 				.append(memberStatus).append(", memberCost=")
 				.append(memberCost).append(", paymentOption=")
-				.append(paymentOption).append(", memberPaid=")
+				//.append(paymentOption).append(", memberPaid=")
 				.append(memberPaid).append("]");
 		return builder.toString();
 	}
