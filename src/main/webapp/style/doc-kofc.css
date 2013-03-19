@@ -143,3 +143,16 @@
 .successBar {
 	text-align: center;
 }
+
+.placeholder { 
+	color: #aaa; 
+}
+
+.nav-tabs>li>a {
+	background-color: #eeeeee;
+}
+
+.nav-tabs>li>a:hover {
+	background-color: #686868;
+	color: #ffffff;
+}

@@ -11,3 +11,4 @@
 <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js"><jsp:text> </jsp:text></script>
 <script src="/js/json2.js"><jsp:text> </jsp:text></script>
 <script src="/bootstrap/js/bootstrap.js"><jsp:text> </jsp:text></script>
+<script src="/js/jquery.placeholder.min.js"><jsp:text> </jsp:text></script>

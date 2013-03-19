@@ -1,6 +1,7 @@
 var totalRelations=0;
-	
+
 $(document).ready(function() {
+	$('input, textarea').placeholder();
 	//$('#relation-question').tooltip();
 	$('#addRelationButton').click(addRelationTableRow);
 	$('#submitButton').click(confirmForm);
@@ -19,11 +20,13 @@ function addRelationTableRow() {
    $('#RelationTable > tbody:last').append($('<tr>')
       .append($('<td>')
          .append($('<input>')
-            .attr('id', 'relationFirstName' + totalRelations).attr('name', 'firstName').attr('type', 'text').attr('placeholder', 'First Name').attr('title', 'First Name').attr('class', 'span2') 
+            .attr('id', 'relationFirstName' + totalRelations).attr('name', 'firstName').attr('type', 'text').attr('placeholder', 'First Name').attr('title', 'First Name').attr('class', 'span2')
+            .placeholder()
          )
       ).append($('<td>')
          .append($('<input>')
             .attr('id', 'relationLastName' + totalRelations).attr('name', 'lastName').attr('type', 'text').attr('placeholder', 'Last Name').attr('title', 'Last Name').attr('class', 'span2')
+            .placeholder()
          )
       ).append($('<td>')
          .append($('<select>')
@@ -64,10 +67,10 @@ function relationChange(event) {
 	otherTd.empty();
 	
 	if(selValue == 'CHILD') {
-		otherTd.append($('<input>').attr('name', 'extraData').attr('type', 'text').attr('placeholder', 'Age').attr('title', 'Age').attr('pattern', '\\d+').attr('class', 'span1'));
+		otherTd.append($('<input>').attr('name', 'extraData').attr('type', 'text').attr('placeholder', 'Age').attr('title', 'Age').attr('pattern', '\\d+').attr('class', 'span1').placeholder());
 	}
 	else if(selValue == 'OTHER') {
-		otherTd.append($('<input>').attr('name', 'extraData').attr('type', 'text').attr('placeholder', 'Details').attr('title', 'Details').attr('class', 'span3'));
+		otherTd.append($('<input>').attr('name', 'extraData').attr('type', 'text').attr('placeholder', 'Details').attr('title', 'Details').attr('class', 'span3').placeholder());
 	}
 }
 
@@ -96,7 +99,7 @@ function validateCost(inputEvent, refElem) {
 		//we are operating on the input element;
 		elem = this;
 	}
-	if($(elem).val() !== '' && $(elem).get(0).checkValidity()) {
+	if($(elem).val() !== '' && checkElemValid($(elem).get(0))) {
 		//we are valid
 		var checkedElem = $("input[name=memberOption]:checked").get(0);
 		if(checkedElem) {
@@ -167,7 +170,7 @@ function submitForm() {
 	var validationInputId = $(memberOpt).data('validation-input');
 	if(validationInputId) {
 		var validationInput = form.find('#' + validationInputId);
-		if(validationInput.val() && validationInput.get(0).checkValidity()) {
+		if(validationInput.val() && checkElemValid(validationInput.get(0))) {
 			member.validationInput = validationInput.val();
 		}
 		else {
@@ -297,4 +300,27 @@ function showSuccess(msgLabel, msgBody) {
 		$('#responseDlgOk').off('click');
 	});
 	$('#responseDlg').modal('show');	
+}
+
+/**
+ * IE-safe method to check the validity of an object
+ * @param elem
+ * @returns
+ */
+function checkElemValid(elem) {
+	if(elem.checkValidity) {
+		if(elem.checkValidity()) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+	else {
+		if(elem.pattern) {
+			return new RegExp(elem.pattern).test($(elem).val());
+		}
+		//no pattern
+		return true;
+	}
 }
