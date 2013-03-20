@@ -14,7 +14,7 @@
       <![CDATA[
       <!-- HTML5 shim, for IE6-8 support of HTML5 elements, outside the taglib due to CDATA support -->
       <!--[if lt IE 9]>
-        <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+        <script src="/js/html5shiv.js"></script>
       <![endif]-->
       ]]>
    </head>
@@ -22,10 +22,6 @@
       <div class="page-wrapper">
          <jsp:include page="include/header-kofc-pool.jspx"/>
          <div class="container">
-            <form:form id="submitForm" modelAttribute="member" class="application-form" action="${formUrl}">
-               <form:hidden path="id" />
-               <form:hidden path="lastName" />
-            </form:form>
             <div class="page-header">
                <h1>Payment Successfully Processed!<br/><small>2013 Season, Knights of Columbus, Arlington Pool</small></h1>
             </div>
@@ -34,10 +30,14 @@
             </div>
             <div class="form-bottom-spacer">&#160;</div>
             <div class="row">
-               <div class="span12"><p>You will be redirected back to the application complete page in 10 seconds.</p></div>
+               <div class="span12"><p>To return to the application summary page, click the button below</p></div>
             </div>
+            <form:form id="submitForm" modelAttribute="member" class="" action="${formUrl}">
+               <form:hidden path="id" />
+               <form:hidden path="lastName" />
+               <button class="span2 btn btn-primary" type="submit" id="submitButton">Return</button>
+            </form:form>
          </div>
-
       </div>
    </body>
 </html>

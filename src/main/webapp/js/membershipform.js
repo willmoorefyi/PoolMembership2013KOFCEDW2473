@@ -2,6 +2,7 @@ var totalRelations=0;
 
 $(document).ready(function() {
 	$('input, textarea').placeholder();
+	$('.modal').appendTo($('body'));
 	//$('#relation-question').tooltip();
 	$('#addRelationButton').click(addRelationTableRow);
 	$('#submitButton').click(confirmForm);

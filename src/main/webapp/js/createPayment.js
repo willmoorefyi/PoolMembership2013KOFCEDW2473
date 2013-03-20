@@ -1,6 +1,7 @@
 
 $(document).ready(function() {
 	$('#submitCCButton').click(confirmForm);
+	$('.modal').appendTo($('body'));
 });
 
 /**
