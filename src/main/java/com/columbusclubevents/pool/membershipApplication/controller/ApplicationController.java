@@ -81,6 +81,10 @@ public class ApplicationController {
 		}
 		else {
 			Member member = memberRequest.getMember();
+			List<ErrorMessage> optionErrors = internalValidateMemberOptions(memberRequest.getMembershipOption(), member);
+			if(optionErrors.size() > 0) {
+				return createErrorResponse(optionErrors);
+			}
 			List<ErrorMessage> dependentErrors = internalValidateMemberDependents(member);
 			if(dependentErrors.size() > 0) {
 				return createErrorResponse(dependentErrors);
@@ -402,12 +406,30 @@ public class ApplicationController {
 	}
 	
 	/**
+	 * Validate the option the member selected as compared to the membership form.
+	 * @param opt The membership option selected
+	 * @param member The member object
+	 * @return
+	 */
+	private List<ErrorMessage> internalValidateMemberOptions(MembershipOption opt, Member member) {
+		List<ErrorMessage> errorMessages = new ArrayList<ErrorMessage>();
+		
+		if(opt.getOptionKey().equalsIgnoreCase("memberSwimPass") && member.getDependents().size() > 0) {
+			log.warn("Individual selected member multi-swim pass, but added family members.  This is an invalid");
+			errorMessages.add(new ErrorMessage("relationType", "You cannot select a multi-swim pass for additional family members.  A multi-swim pass can only be used by the council member."));
+		}
+		
+		return errorMessages;
+	}
+	
+	/**
 	 * Validate the member object's dependents passed-in.  These cannot be custom validated as they are dependent on other field values
 	 * @param member The member object to validate
 	 * @return A list of Error Messages responses containing any errors that were identified
 	 */
 	private List<ErrorMessage> internalValidateMemberDependents(Member member) {
 		List<ErrorMessage> errorMessages = new ArrayList<ErrorMessage>();
+		
 		boolean hasNanny = false;
 		for(Dependent dependent : member.getDependents()) {
 			if(dependent.getRelationType().equals("NANNY")) {
