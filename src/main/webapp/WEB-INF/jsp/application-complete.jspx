@@ -49,7 +49,9 @@
 	                           <button class="btn-large btn-primary span3" type="submit" id="submitButton" disabled="disabled">Pay Now!</button>
 	                        </c:when>
 	                        <c:otherwise>
-	                           <button class="btn-large btn-primary span3" type="submit" id="submitButton">Pay Now!</button>
+                             <!-- <button class="btn-large btn-primary span3" type="submit" id="submitButton" disabled="disabled">Pay Now!</button> -->
+	                          <!-- TODO: Get Paypal to fix the buttons -->
+	                          <button class="btn-large btn-primary span3" type="submit" id="submitButton">Pay Now!</button>
 	                        </c:otherwise>
 	                     </c:choose>
 	                  </div>
@@ -61,7 +63,10 @@
 	                        <a href="https://www.paypal.com/webapps/mpp/how-paypal-works"><font size="2" face="Arial" color="#0079CD">How PayPal Works</font></a>
 	                     </div>
 	                  </div>
-	                  <div class="span3"><p>&#160;</p></div>
+	                  <div class="span3"><p>Sit tight, Online payments are coming soon!</p></div>
+	               </div>
+	               <div class="row">
+                     <div class="span12"><p class="text-info successBar">Your application has been received and is in process. We encourage you to wait until online payment is available. There will be no adverse effect on your application submission if you wait until online payment is available.</p></div>
 	               </div>
 	               <div class="form-bottom-spacer">&#160;</div>
 	               <div class="row">

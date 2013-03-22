@@ -93,6 +93,12 @@
 		</dependency>
 
 		<!-- Logging -->
+      <dependency>
+		   <groupId>com.columbusclub</groupId>
+		   <artifactId>GAELogAppender</artifactId>
+         <version>1.0.0</version>
+         <scope>compile</scope>
+      </dependency>
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
@@ -110,7 +116,19 @@
 			<artifactId>logback-classic</artifactId>
 			<version>${logback.version}</version>
 			<scope>runtime</scope>
+         <exclusions>
+            <exclusion>
+               <groupId>ch.qos.logback</groupId>
+               <artifactId>logback-core</artifactId>
+            </exclusion>
+         </exclusions>
 		</dependency>
+      <dependency>
+         <groupId>com.columbusclubevents.logbackwrapper</groupId>
+         <artifactId>logback-core</artifactId>
+         <version>0.0.1-SNAPSHOT</version>
+         <scope>runtime</scope>
+      </dependency>
 
 
 		<!-- Spring -->

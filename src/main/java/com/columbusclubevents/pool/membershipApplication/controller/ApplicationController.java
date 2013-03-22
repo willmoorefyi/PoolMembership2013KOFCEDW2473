@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import javax.annotation.PostConstruct;
 import javax.validation.Valid;
 
 import org.apache.commons.lang.StringUtils;
@@ -21,6 +22,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+
+import ch.qos.logback.classic.LoggerContext;
+import ch.qos.logback.classic.joran.JoranConfigurator;
+import ch.qos.logback.core.joran.spi.JoranException;
+import ch.qos.logback.core.util.StatusPrinter;
 
 import com.columbusclubevents.pool.membershipApplication.model.Dependent;
 import com.columbusclubevents.pool.membershipApplication.model.Member;
@@ -58,6 +64,27 @@ public class ApplicationController {
 	private PaypalRestWrapper paypalWrapper;
 	//private PaypalAdaptivePaymentWrapper paypalWrapper;
 
+	@PostConstruct
+	public void init() {
+	    // assume SLF4J is bound to logback in the current environment
+		/*
+	    LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
+	    
+	    try {
+	      JoranConfigurator configurator = new JoranConfigurator();
+	      configurator.setContext(context);
+	      // Call context.reset() to clear any previous configuration, e.g. default 
+	      // configuration. For multi-step configuration, omit calling context.reset().
+	      context.reset(); 
+	      configurator.doConfigure(this.getClass().getClassLoader().getResourceAsStream("logback.xml"));
+	    } catch (JoranException je) {
+	      // StatusPrinter will handle this
+	    }
+	    StatusPrinter.printInCaseOfErrorsOrWarnings(context);
+		*/
+	    log.info("Entering application.");
+	}
+	
 	@RequestMapping(value="/applicationBootstrap.htm",method=RequestMethod.GET)
 	public String bootstrapForm(Model model){
 		log.debug("Received GET request on applicationBootstrap");

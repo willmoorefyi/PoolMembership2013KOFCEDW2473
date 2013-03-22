@@ -102,6 +102,7 @@ public class PaypalRestWrapper {
 		payment.setTransactions(transactions);
 		
 		try {
+			log.debug("Attempting to submit payment: {}", payment);
 			APIContext apiContext = new APIContext(accessToken);
 			Payment createdPayment = payment.create(apiContext);
 			log.info("Created payment with id '{}' and status '{}' ", createdPayment.getId(), createdPayment.getState());

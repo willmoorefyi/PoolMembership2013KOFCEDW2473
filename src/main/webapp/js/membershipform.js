@@ -121,8 +121,8 @@ function setCost(val) {
  */
 function confirmForm() {
 	//verify a member option has been selected
-	if($('#application-form #rateTabsContent input[name=memberOption]:checked').length == 0 ) { //|| $('#application-form #paymentMethod input[name=paymentOption]:checked').length == 0
-		showError('Invalid Submission', 'You must select a membership option to submit your membership application form.');
+	if($('#application-form #rateTabsContent input[name=memberOption]:checked').length == 0 || $('#application-form input#finalCost').val() == '') { 
+		showError('Invalid Submission', 'You must select a membership option and complete any required validation information to submit your membership application form.');
 	}
 	else {
 		$('#confirmDlg').modal('show');
