@@ -62,6 +62,7 @@ public class Member implements Serializable {
 	private Integer memberCost;
 	//private String paymentOption;
 	private Boolean memberPaid;
+	private String paymentId;
 	
 	//not handling time zones, no idea what GAE is doing with time zones here.
 	private Date applicationTime;
@@ -244,6 +245,14 @@ public class Member implements Serializable {
 		this.lastName = lastName;
 	}
 
+	public String getPaymentId() {
+		return paymentId;
+	}
+
+	public void setPaymentId(String paymentId) {
+		this.paymentId = paymentId;
+	}
+
 	public Date getApplicationTime() {
 		return applicationTime;
 	}
@@ -292,12 +301,11 @@ public class Member implements Serializable {
 				.append(validationInput).append(", memberType=")
 				.append(memberType).append(", memberStatus=")
 				.append(memberStatus).append(", memberCost=")
-				.append(memberCost).append(", paymentOption=")
-				//.append(paymentOption).append(", memberPaid=")
-				.append(memberPaid).append("]");
+				.append(memberCost).append(", memberPaid=")
+				.append(memberPaid).append("paymentId, =")
+				.append(paymentId).append("]");
 		return builder.toString();
 	}
-	
 	
 	/*
 	@NotNull 

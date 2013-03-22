@@ -23,11 +23,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import ch.qos.logback.classic.LoggerContext;
-import ch.qos.logback.classic.joran.JoranConfigurator;
-import ch.qos.logback.core.joran.spi.JoranException;
-import ch.qos.logback.core.util.StatusPrinter;
-
 import com.columbusclubevents.pool.membershipApplication.model.Dependent;
 import com.columbusclubevents.pool.membershipApplication.model.Member;
 import com.columbusclubevents.pool.membershipApplication.model.MemberRequest;
@@ -35,12 +30,13 @@ import com.columbusclubevents.pool.membershipApplication.model.MemberStatus;
 import com.columbusclubevents.pool.membershipApplication.model.MembershipCategory;
 import com.columbusclubevents.pool.membershipApplication.model.MembershipOption;
 import com.columbusclubevents.pool.membershipApplication.model.MembershipOptionsList;
-import com.columbusclubevents.pool.membershipApplication.paypal.PaypalRestWrapper;
-import com.columbusclubevents.pool.membershipApplication.paypal.json.request.PaymentCreditCard;
-import com.columbusclubevents.pool.membershipApplication.paypal.json.request.PaymentPaypal;
+
 import com.columbusclubevents.pool.membershipApplication.repository.MemberRepository;
 import com.columbusclubevents.pool.membershipApplication.repository.MembershipCategoryRepository;
 import com.columbusclubevents.pool.membershipApplication.repository.MembershipOptionRepsository;
+import com.columbusclubevents.pool.membershipApplication.stripe.PaymentCreditCard;
+import com.columbusclubevents.pool.membershipApplication.stripe.PaymentCreditCardResponse;
+import com.columbusclubevents.pool.membershipApplication.stripe.StripeRestWrapper;
 import com.columbusclubevents.pool.membershipApplication.validation.ErrorMessage;
 import com.columbusclubevents.pool.membershipApplication.validation.ValidationResponse;
 
@@ -61,7 +57,8 @@ public class ApplicationController {
 	private MemberRepository memberRepo;
 
 	@Autowired
-	private PaypalRestWrapper paypalWrapper;
+	private StripeRestWrapper stripeRestWrapper;
+	//private PaypalRestWrapper paypalWrapper;
 	//private PaypalAdaptivePaymentWrapper paypalWrapper;
 
 	@PostConstruct
@@ -155,9 +152,9 @@ public class ApplicationController {
 		if(member != null) {
 			//prep the new models
 			PaymentCreditCard paymentCC = PaymentCreditCard.fromMember(member);
-			PaymentPaypal paymentPaypal = new PaymentPaypal();
+			//PaymentPaypal paymentPaypal = new PaymentPaypal();
 			model.addAttribute("paymentCC", paymentCC);
-			model.addAttribute("paymentPaypal", paymentPaypal);
+			//model.addAttribute("paymentPaypal", paymentPaypal);
 			return "create-payment";
 		}
 		else {
@@ -186,12 +183,13 @@ public class ApplicationController {
 		}
 
 		log.debug("Setting additional properties on input CC request");
-		paymentCC.setFirstName(member.getFirstName());
 		paymentCC.setAmount(member.getMemberCost().toString());
 		
 		try {
-			if(paypalWrapper.postCCPayment(paymentCC)) {
+			PaymentCreditCardResponse response = stripeRestWrapper.postCCPayment(paymentCC);
+			if(response.getSuccess()) {
 				member.setMemberPaid(true);
+				member.setPaymentId(response.getSuccessId());
 				member.setMemberStatus(MemberStatus.PAID);
 				log.debug("Persisting member info {}", member);
 				memberRepo.save(member);
@@ -202,13 +200,14 @@ public class ApplicationController {
 				return res;
 			} 
 			else {
-				log.error("Invalid model passed into payCC: '{}'", paymentCC);
-				return createSingleErrorResponse("id", "Payment unable to be processed by Paypal.");
+				String field = response.getParam() == null ? "id" : response.getParam();
+				String message = response.getMessage();
+				return createSingleErrorResponse(field, message);
 			}
 		}
 		catch (Exception e) {
 			log.error("Exception occurred parsing credit card request", e);
-			return createSingleErrorResponse("id", "Error occurred during paypal processing.");
+			return createSingleErrorResponse("id", "Error occurred processing your credit card information. Please try again later.");
 		}
 	}
 	/*

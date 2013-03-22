@@ -83,8 +83,11 @@
 	                                 </div>
 	                           </div>
 	                           <div class="controls-row">
-	                              <div class="control-group span3"><form:input path="ccNumber" type="text" class="inputFormElem" title="Credit Card Number" placeholder="Credit Card Number"></form:input></div>
-	                              <div class="control-group span3">
+	                              <div class="control-group span4"><form:input path="fullName" type="text" class="inputFormElem" title="Cardholder Full Name (as it appears on the card))" placeholder="Cardholder Full Name "></form:input></div>
+	                           </div>
+	                           <div class="controls-row">
+	                             <div class="control-group span3"><form:input path="ccNumber" type="text" class="inputFormElem" title="Credit Card Number" placeholder="Credit Card Number"></form:input></div>
+	                             <div class="control-group span3">
 	                                 <img border="0" title="Visa" alt="Visa" src="/img/logo_ccVisa.gif"></img>
 	                                 <img border="0" title="Mastercard" alt="Mastercard " src="/img/logo_ccMC.gif"></img>
 	                                 <img border="0" title="American Express" alt="American Express" src="/img/logo_ccAmex.gif"></img>

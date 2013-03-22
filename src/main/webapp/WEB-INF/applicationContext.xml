@@ -24,8 +24,9 @@
 	<bean id="propertyConfigurer" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
 	    <property name="locations">
 	        <list>
-	           <value>classpath:paypal.adaptivepayments.properties</value>
-              <value>classpath:paypal.rest.properties</value>
+	           <value>classpath:stripe.test.properties</value>
+	           <!-- <value>classpath:paypal.adaptivepayments.properties</value>
+              <value>classpath:paypal.rest.properties</value>-->
            </list>
        </property>
    </bean> 
