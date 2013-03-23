@@ -133,6 +133,7 @@
                      </div>
                   </div>
                </div>
+               <!-- 
 	            <div class="accordion-group">
 	               <div class="accordion-heading">
 	                  <h3><a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-payment" href="#payment-paypal">Pay with Paypal</a></h3>
@@ -145,6 +146,7 @@
 	                  </div>
 	               </div>
                </div>
+                -->
             </div>
             <tags:modal modalId="confirmDlg" titleElemId="confirmDlgTitle"
                titleText="Confirmation" bodyElemId="confirmDlgBody"

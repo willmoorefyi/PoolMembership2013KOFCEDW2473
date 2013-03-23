@@ -56,17 +56,9 @@
 	                     </c:choose>
 	                  </div>
 	                  <div class="span2">
-	                     <a href="https://www.paypal.com/webapps/mpp/paypal-popup" title="How PayPal Works" onclick="javascript:window.open('https://www.paypal.com/webapps/mpp/paypal-popup','WIPaypal','toolbar=no, location=no, directories=no, status=no, menubar=no, scrollbars=yes, resizable=yes, width=1060, height=700'); return false;">
-	                        <img src="https://www.paypalobjects.com/webstatic/mktg/logo/bdg_payments_by_pp_2line.png" border="0" alt="Payments by PayPal"/>
-	                     </a>
-	                     <div style="text-align:center">
-	                        <a href="https://www.paypal.com/webapps/mpp/how-paypal-works"><font size="2" face="Arial" color="#0079CD">How PayPal Works</font></a>
-	                     </div>
+	                     <img src="/img/stripe-large.png" alt="Powered by Stripe"/>
 	                  </div>
-	                  <div class="span3"><p>Sit tight, Online payments are coming soon!</p></div>
-	               </div>
-	               <div class="row">
-                     <div class="span12"><p class="text-info successBar">Your application has been received and is in process. We encourage you to wait until online payment is available. There will be no adverse effect on your application submission if you wait until online payment is available.</p></div>
+	                  <div class="span3">&#160;</div>
 	               </div>
 	               <div class="form-bottom-spacer">&#160;</div>
 	               <div class="row">
