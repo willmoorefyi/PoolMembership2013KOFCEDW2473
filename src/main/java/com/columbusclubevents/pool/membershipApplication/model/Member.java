@@ -302,7 +302,7 @@ public class Member implements Serializable {
 				.append(memberType).append(", memberStatus=")
 				.append(memberStatus).append(", memberCost=")
 				.append(memberCost).append(", memberPaid=")
-				.append(memberPaid).append("paymentId, =")
+				.append(memberPaid).append(", paymentId, =")
 				.append(paymentId).append("]");
 		return builder.toString();
 	}

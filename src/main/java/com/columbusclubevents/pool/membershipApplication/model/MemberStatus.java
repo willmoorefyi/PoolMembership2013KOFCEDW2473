@@ -3,5 +3,8 @@ package com.columbusclubevents.pool.membershipApplication.model;
 public enum MemberStatus {
 	NEW,
 	PAID,
-	APPROVED
+	APPROVED,
+	PENDINGAPPROVAL,
+	PENDINGDUES,
+	COMPLETE
 }

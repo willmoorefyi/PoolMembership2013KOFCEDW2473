@@ -1,6 +1,7 @@
 package com.columbusclubevents.pool.membershipApplication.controller;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -40,6 +41,11 @@ import com.columbusclubevents.pool.membershipApplication.stripe.StripeRestWrappe
 import com.columbusclubevents.pool.membershipApplication.validation.ErrorMessage;
 import com.columbusclubevents.pool.membershipApplication.validation.ValidationResponse;
 
+/**
+ * The primary application controller for the pool membership website.  All requests are handled through here.
+ * @author wmoore
+ *
+ */
 @Controller
 public class ApplicationController {
 	Logger log = LoggerFactory.getLogger(ApplicationController.class);
@@ -58,27 +64,10 @@ public class ApplicationController {
 
 	@Autowired
 	private StripeRestWrapper stripeRestWrapper;
-	//private PaypalRestWrapper paypalWrapper;
-	//private PaypalAdaptivePaymentWrapper paypalWrapper;
 
 	@PostConstruct
 	public void init() {
 	    // assume SLF4J is bound to logback in the current environment
-		/*
-	    LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
-	    
-	    try {
-	      JoranConfigurator configurator = new JoranConfigurator();
-	      configurator.setContext(context);
-	      // Call context.reset() to clear any previous configuration, e.g. default 
-	      // configuration. For multi-step configuration, omit calling context.reset().
-	      context.reset(); 
-	      configurator.doConfigure(this.getClass().getClassLoader().getResourceAsStream("logback.xml"));
-	    } catch (JoranException je) {
-	      // StatusPrinter will handle this
-	    }
-	    StatusPrinter.printInCaseOfErrorsOrWarnings(context);
-		*/
 	    log.info("Entering application.");
 	}
 	
@@ -142,8 +131,6 @@ public class ApplicationController {
 	@RequestMapping(value="/start-payment.htm")
 	public String startPayment(Model model, @RequestParam("id") String memberId, @RequestParam("lastName") String lastName) {
 		log.debug("Received request to start payment for member ID '{}' with last name '{}'", memberId, lastName);
-		//String redirectUrl = "https://www.paypal.com/";
-		//paypalWrapper.postPayment();
 		
 		//log.debug("Forwarding user to redirect url '{}'", redirectUrl);
 		//return new ModelAndView(new ExternalRedirectView(redirectUrl));
@@ -210,40 +197,6 @@ public class ApplicationController {
 			return createSingleErrorResponse("id", "Error occurred processing your credit card information. Please try again later.");
 		}
 	}
-	/*
-	public String payCC(@RequestBody MultiValueMap<String, String> formInput, BindingResult result) {
-		log.debug("Received request to pay with Credit Card");
-				
-		log.debug("Form input contained map '{}'", formInput);
-		PaymentCreditCard paymentCC = PaymentCreditCard.fromMultiValueMap(formInput);
-		
-		String memberId = paymentCC.getMemberId();
-		String lastName = paymentCC.getLastName();
-		Member member = retrieveMember(memberId, lastName);
-		
-		if(member == null) {
-			log.error("Invalid model passed into payCC: '{}'", paymentCC);
-			return "member-no-match";
-		}
-		
-		log.debug("Setting additional properties on input CC request");
-		paymentCC.setFirstName(member.getFirstName());
-		paymentCC.setAmount(member.getMemberCost().toString());
-		
-		try {
-			if(paypalWrapper.postCCPayment(paymentCC)) {
-				return "success";
-			} 
-			else {
-				return "payment-error";
-			}
-		}
-		catch (Exception e) {
-			log.error("Exception occurred parsing credit card request", e);
-			return "payment-error";
-		}
-	}
-	*/
 	
 	@RequestMapping(value="/payment-complete.htm")
 	public String showPaymentSuccessPage(Model model, @RequestParam("id") String memberId, @RequestParam("lastName") String lastName) {
@@ -259,7 +212,6 @@ public class ApplicationController {
 			return "member-no-match";
 		}
 	}
-
 
 	@RequestMapping(value="/retrieve-member.htm")
 	public String retrieveSuccessPage(Model model) {
@@ -322,6 +274,41 @@ public class ApplicationController {
 	}
 	
 	/**
+	 * Fetch the Manage Applications page
+	 * @param model The object model (not used)
+	 * @return The page JSPX to use
+	 */
+	@RequestMapping(value="/manage/manage-applications.htm",method= RequestMethod.GET)
+	public String manageApplications(Model model) {
+		log.debug("Received GET request on manage-applications.htm");
+		return "manage-applications";
+	}
+	
+	/**
+	 * Retrieve the list of all possible member statuses. Used to generate the sort options for the table
+	 * @param model The object model (not used)
+	 * @return A list of member status objects, to serialize as JSON and return to the caller
+	 */
+	@RequestMapping(value="/manage/get-default-member-status-values.json",method=RequestMethod.GET, produces="application/json")
+	public @ResponseBody List<MemberStatus> getMemberStatusValues(Model model) {
+		log.debug("Received GET request on get-default-member-status-values.json");
+		return Arrays.asList(MemberStatus.values());	
+	}
+	
+	/**
+	 * Retrieve the list of all members that match the filter criteria passed in.
+	 * @param model The object model (not used)
+	 * @param request The filter request from the client (as a string)
+	 * @param result The result of binding the input string to the MemberStatus object.  Should never be in error
+	 * @return The list of Member objects that match the filter status specified
+	 */
+	@RequestMapping(value="/manage/manage-applications.json",method=RequestMethod.POST, consumes="application/json", produces="application/json")
+	public @ResponseBody List<Member> retrieveFilteredApplications(Model model, @RequestBody MemberStatus request, BindingResult result) {
+		log.debug("Received POST request on manage-rates.json with filter input '{}'", request);
+		return fetchMembersByStatus(request);
+	}
+	
+	/**
 	 * Process the error messages that occur from the binding of the passed-in object to the Java object via JSR-303 validation
 	 * @param result The result of attemptipng to bind the passed-in string to a Java object
 	 * @return The list of {@link ErrorMessage} objects
@@ -366,18 +353,22 @@ public class ApplicationController {
 	 * @return The validation response object
 	 */
 	private ValidationResponse createSingleErrorResponse(String field, String msg) {
-		log.debug("Creating error message for field '{}' with message '{}'");
+		log.debug("Creating error message for field '{}' with message '{}'", field, msg);
 		ErrorMessage error = new ErrorMessage(field, msg);
 		List<ErrorMessage> errorMessages = new ArrayList<ErrorMessage>();
 		errorMessages.add(error);
 		return createErrorResponse(errorMessages);
 	}
 	
-	//TODO Update so that we are updating selected entites, rather than dropping and re-adding
-	
+	/**
+	 * Clears the current membership categories and reload with the new list.
+	 * This simplifies the process of loading new membership options into the application
+	 * @param memberCategories
+	 */
 	@Transactional
 	private void clearAndUpdateMembershipCategories(List<MembershipCategory> memberCategories) {
-		//TODO make this actually use the database to enforce uniqueness
+		//TODO make this actually use the database to enforce uniqueness - GAE won't do this
+		//TODO Update so that we are updating selected entites, rather than dropping and re-adding
 		Set<String> optIds = new HashSet<String>();
 		for(MembershipCategory memberCategory : memberCategories) {
 			for(MembershipOption memberOpt : memberCategory.getMemberOptions()) {
@@ -400,7 +391,7 @@ public class ApplicationController {
 	 */
 	@Transactional
 	private String persistMember(Member member, MembershipOption opt) {
-		log.debug("Member returned: {}", member);
+		log.debug("Member to persist: {}", member);
 		//fetch the remaining option data from the backing store by the option key
 		opt = memberOptionRepo.findByOptionKey(opt.getOptionKey()).get(0);
 		log.debug("Found membership option {}", opt);
@@ -413,7 +404,16 @@ public class ApplicationController {
 		member.setMemberCost(opt.getCost());
 		
 		//refetch the category to get all properties
-		MembershipCategory cat = memberCategoryRepo.findOne(opt.getMemberCategoryParent().getId());
+		//GAE intermittently returns the child object with the back reference not set, so we need to defensively code against this.
+		Long memberCategoryId;
+		if(opt.getMemberCategoryParent() == null) {
+			memberCategoryId = opt.getId().getParent().getId();
+		}
+		else {
+			memberCategoryId = opt.getMemberCategoryParent().getId();
+		}
+		log.debug("Fetching membership category with ID: {}", memberCategoryId);
+		MembershipCategory cat = memberCategoryRepo.findOne(memberCategoryId);
 		log.debug("Setting membership category type on object: {}", cat);
 		member.setMemberType(cat.getTabDescription());
 		
@@ -431,6 +431,14 @@ public class ApplicationController {
 		return member.getId().toString();
 	}
 	
+	@Transactional
+	private List<Member> fetchMembersByStatus(MemberStatus status) {
+		log.debug("Retrieving members with status {}", status);
+		List<Member> members = memberRepo.findByMemberStatus(status);
+		log.debug("Returned members: '{}'", members);
+		return members;
+	}
+	
 	/**
 	 * Validate the option the member selected as compared to the membership form.
 	 * @param opt The membership option selected
@@ -440,9 +448,9 @@ public class ApplicationController {
 	private List<ErrorMessage> internalValidateMemberOptions(MembershipOption opt, Member member) {
 		List<ErrorMessage> errorMessages = new ArrayList<ErrorMessage>();
 		
-		if(opt.getOptionKey().equalsIgnoreCase("memberSwimPass") && member.getDependents().size() > 0) {
-			log.warn("Individual selected member multi-swim pass, but added family members.  This is an invalid");
-			errorMessages.add(new ErrorMessage("relationType", "You cannot select a multi-swim pass for additional family members.  A multi-swim pass can only be used by the council member."));
+		if(opt.getOptionKey().equalsIgnoreCase("memberSingle") && member.getDependents().size() > 0) {
+			log.warn("Individual selected member individual , but added family members.  This is an invalid choice");
+			errorMessages.add(new ErrorMessage("relationType", "You cannot select an individual membership and include additional family members.  An individual memberhsip can only be used by one person."));
 		}
 		
 		return errorMessages;
@@ -492,26 +500,6 @@ public class ApplicationController {
 				log.warn("Passed-in memberId '{}' or lastName '{}' has an empty value after trimming, returning null", memberId, lastName);
 				return null;
 			}
-			/*
-			String lastName4Chars = StringUtils.strip(StringUtils.left(memberId, 4), "_");
-			if(StringUtils.isBlank(lastName4Chars)) {
-				log.warn("Passed-in memberId '{}' has an empty name after trimming, returning null", memberId);
-				return null;
-			}
-			Long appId = Long.parseLong(memberId.substring(4));
-			List<Member> members = memberRepo.lastNameLikeAndId(lastName4Chars, lastName4Chars + "\uFFFD", appId);
-			*/
-			/*
-			List<Member> members = memberRepo.findByLastNameAndId(lastName, Long.parseLong(memberId));
-			log.debug("Executed member search, results: {}", members);
-			if(members.size() != 1) {
-				log.warn("Non-single result returned by query on member Id '{}' and last name '{}', invalid state, returning null", memberId, lastName);
-				return null;
-			}
-			else {
-				return members.get(0);
-			}
-			*/
 			Member member = memberRepo.findOne(Long.parseLong(memberId));
 			if(member != null && member.getLastName() != null && member.getLastName().equalsIgnoreCase(lastName)) {
 				log.debug("Found matching member '{}'", member);

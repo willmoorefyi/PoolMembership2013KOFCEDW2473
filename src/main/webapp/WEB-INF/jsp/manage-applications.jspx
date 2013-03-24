@@ -1,0 +1,63 @@
+<html xmlns:c="http://java.sun.com/jsp/jstl/core"
+   xmlns:spring="http://www.springframework.org/tags"
+   xmlns:jsp="http://java.sun.com/JSP/Page"
+   xmlns:tags="urn:jsptagdir:/WEB-INF/tags">
+
+	<jsp:output doctype-root-element="HTML" doctype-system="about:legacy-compat" />
+	<jsp:directive.page contentType="text/html;charset=UTF-8" />
+	<head>
+	  <tags:header headerTitle="Manage Applications" style="doc-columbus-club.css"></tags:header>
+
+      <spring:url value="/manage/manage-applications.json" var="manageApplicationsFormUrl" />
+      <spring:url value="/manage/get-default-member-status-values.json" var="memberStatusUrl"/>
+      
+      <![CDATA[<script src="/js/sorttable.js"></script>]]>
+      <![CDATA[<script src="/js/manageApplications.js"></script>]]>
+      <![CDATA[
+         <!-- HTML5 shim, for IE6-8 support of HTML5 elements, outside the taglib due to CDATA support -->
+         <!--[if lt IE 9]>
+            <script src="/js/html5shiv.js"></script>
+         <![endif]-->
+      ]]>
+	</head>
+	<body class="">
+      <jsp:include page="include/header-columbus-club.jspx" />
+      <div class="container-fluid">
+         <div class="row-fluid">
+            <div class="span2">
+               <div class="menu-spacer">&#160;</div>
+               <div data-spy="affix" data-offset-top="139" class="ccnavbar">
+	               <form id="statusForm" class=""  action="${memberStatusUrl}">
+		               <ul class="nav nav-pills nav-stacked" id="navbar"><jsp:text/></ul>
+	               </form>
+               </div>
+            </div>
+            <div class="span10">
+		         <div class="page-header">
+		            <h1>Manage 2013 Members</h1>
+		         </div>
+		         <form id="memberForm" class="application-form" action="${manageApplicationsFormUrl}">
+		            <table id="memberTable" class="table table-hover sortable">
+			            <thead>
+			               <th class="span1"><p>First Name</p></th>
+			               <th class="span1"><p>Last Name</p></th>
+			               <th class="span3"><p>Member Type</p></th>
+			               <th class="span1"><p>Member #</p></th>
+			               <th class="span1"><p>Status</p></th>
+			               <th class="span2"><p>Email</p></th>
+                        <th class="span3"><p>Dependents</p></th>
+			            </thead>
+			            <tbody>&#160;</tbody>
+		            </table>
+		         </form>
+		         <tags:modal modalId="confirmDlg" titleElemId="confirmDlgTitle"
+		            titleText="Confirmation" bodyElemId="confirmDlgBody"
+		            closeAllowed="true" confirmElemId="confirmDlgOk" confirmText="Ok">This will update the member data you have changed. Are you sure you wish to continue?</tags:modal>
+		         <tags:modal modalId="responseDlg" titleElemId="responseDlgTitle"
+		            bodyElemId="responseDlgBody" closeAllowed="true"
+		            confirmElemId="responseDlgOk" confirmText="Ok">No Text</tags:modal>
+		      </div>
+         </div>
+      </div>
+	</body>
+</html>

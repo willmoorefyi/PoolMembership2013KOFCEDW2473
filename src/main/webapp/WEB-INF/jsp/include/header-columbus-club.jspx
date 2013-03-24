@@ -3,8 +3,6 @@
    xmlns:jsp="http://java.sun.com/JSP/Page" 
    class="logo-header-columbus-club subhead-columbus-club" id="subhead">
    <div class="container logo-holder-columbus-club">
-	   <header>
-		  <jsp:text></jsp:text>
-	   </header>
+	   <header>&#160;</header>
    </div>
 </div>

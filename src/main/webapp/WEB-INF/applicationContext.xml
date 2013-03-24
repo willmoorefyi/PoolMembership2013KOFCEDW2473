@@ -9,7 +9,7 @@
          http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
          http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc.xsd
          http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd 
-         http://www.springframework.org/schema/data/jpa http://www.springframework.org/schema/data/jpa/spring-jpa.xsd" >
+         http://www.springframework.org/schema/data/jpa http://www.springframework.org/schema/data/jpa/spring-jpa-1.2.xsd" >
 
    <!-- Define the entity manager for JPA transactions -->
 	<bean id="entityManagerFactory" class="org.springframework.orm.jpa.LocalEntityManagerFactoryBean" lazy-init="true">
@@ -24,9 +24,7 @@
 	<bean id="propertyConfigurer" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
 	    <property name="locations">
 	        <list>
-	           <value>classpath:stripe.properties</value>
-	           <!-- <value>classpath:paypal.adaptivepayments.properties</value>
-              <value>classpath:paypal.rest.properties</value>-->
+	           <value>classpath:stripe.test.properties</value>
            </list>
        </property>
    </bean> 

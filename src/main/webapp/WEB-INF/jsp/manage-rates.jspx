@@ -3,36 +3,35 @@
 	xmlns:jsp="http://java.sun.com/JSP/Page"
 	xmlns:tags="urn:jsptagdir:/WEB-INF/tags">
 
-<jsp:output doctype-root-element="HTML"
-	doctype-system="about:legacy-compat" />
-<jsp:directive.page contentType="text/html;charset=UTF-8" />
-<head>
-<tags:header headerTitle="Manage Rates"></tags:header>
+	<jsp:output doctype-root-element="HTML" doctype-system="about:legacy-compat" />
+	<jsp:directive.page contentType="text/html;charset=UTF-8" />
+	<head>
+      <tags:header headerTitle="Manage Rates" style="doc-columbus-club.css"></tags:header>
 
-<spring:url value="/manage/manage-rates.json" var="formUrl" />
-<spring:url value="/manage/get-default-rate.json" var="currentRateUrl" />
-<script type="text/javascript">
-	var formUrl = '${formUrl}';
-	var currentRateUrl = '${currentRateUrl}';
-</script>
-
-<![CDATA[<script src="/js/manageRates.js"></script>]]>
-<![CDATA[
+		<spring:url value="/manage/manage-rates.json" var="formUrl" />
+		<spring:url value="/manage/get-default-rate.json" var="currentRateUrl" />
+		
+		<script type="text/javascript">
+			var formUrl = '${formUrl}';
+			var currentRateUrl = '${currentRateUrl}';
+		</script>
+		
+		<![CDATA[<script src="/js/manageRates.js"></script>]]>
+		<![CDATA[
       <!-- HTML5 shim, for IE6-8 support of HTML5 elements, outside the taglib due to CDATA support -->
       <!--[if lt IE 9]>
         <script src="/js/html5shiv.js"></script>
       <![endif]-->
       ]]>
-</head>
-<body class="body-blue">
-	<div class="page-wrapper">
-		<jsp:include page="include/header-kofc-pool.jspx" />
+	</head>
+	<body class="">
+      <jsp:include page="include/header-columbus-club.jspx" />
 		<div class="container">
 			<div class="page-header">
 				<h1>Manage 2013 Rates</h1>
 			</div>
 			<form id="RateForm" class="form-horizontal application-form">
-			   <fieldset><jsp:text> </jsp:text></fieldset>
+			   <fieldset>&#160;</fieldset>
 		   </form>
 			<div class="row">
 				<div class="span2">
@@ -49,6 +48,5 @@
 				bodyElemId="responseDlgBody" closeAllowed="true"
 				confirmElemId="responseDlgOk" confirmText="Ok">No Text</tags:modal>
 		</div>
-	</div>
-</body>
+	</body>
 </html>
