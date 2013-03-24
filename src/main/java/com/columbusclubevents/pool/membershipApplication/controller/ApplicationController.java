@@ -43,6 +43,16 @@ import com.columbusclubevents.pool.membershipApplication.validation.ValidationRe
 
 /**
  * The primary application controller for the pool membership website.  All requests are handled through here.
+ * This controller is implemented as a Spring MVC controller class using annotations. Spring-JPA is used to
+ * autowire JAP repositories into the controller for interacting with the data model, removing the need for cumbersome
+ * DAO classes.  
+ * 
+ * Unlike a traditional Spring MVC application, this class mostly processes JSON data using Jackson to deserialize JSON
+ * requests (via the {@link RequestParam} and {@link RequestBody} annotations on method parameters) and then to 
+ * serialize Java objects back to JSON using the {@link ResponseBody} annotation on method return parameters.
+ * 
+ *  For more information refer to <a href="http://blog.springsource.org/2010/01/25/ajax-simplifications-in-spring-3-0/">this excellent SpringSource blog article.</a>
+ * 
  * @author wmoore
  *
  */
@@ -50,33 +60,63 @@ import com.columbusclubevents.pool.membershipApplication.validation.ValidationRe
 public class ApplicationController {
 	Logger log = LoggerFactory.getLogger(ApplicationController.class);
 	
+	/**
+	 * Constants to use on the membership form to indicate if validation succeeded or not
+	 */
 	private static final String RESPONSE_SUCCESS = "SUCCESS";
 	private static final String RESPONSE_FAILURE = "FAIL";
 	
+	/**
+	 * The Spring-JPA repository for accessing the underlying datastore {@link MembershipCategory} values.  
+	 */
 	@Autowired
 	private MembershipCategoryRepository memberCategoryRepo;
 	
+	/**
+	 * The Spring-JPA repository for accessing the underlying datastore {@link MembershipOption} values.  
+	 */
 	@Autowired
 	private MembershipOptionRepsository memberOptionRepo;
 	
+	/**
+	 * The Spring-JPA repository for accessing the underlying datastore {@link Member} values.  
+	 */
 	@Autowired
 	private MemberRepository memberRepo;
 
+	/**
+	 * The Wrapper for the REST API integration with the payment processor, Stripe..
+	 * This replaces the earlier {@link PaypalRestWrapper}, which was inconsistent in its performance.  
+	 */
 	@Autowired
 	private StripeRestWrapper stripeRestWrapper;
 
+	/**
+	 * Method to invoke after the bean construction is complete.
+	 * Was initially used to reconfigure slf4j / logback, but is no longer necessary due to the usage of {@link GAELogAppender}.
+	 */
 	@PostConstruct
 	public void init() {
 	    // assume SLF4J is bound to logback in the current environment
 	    log.info("Entering application.");
 	}
 	
+	/**
+	 * Return a reference to the boostrap jspx page.
+	 * @param model The object model (not used)
+	 * @return The base string to locate the underling JSPX file to use for the {@link ViewResolver}
+	 */
 	@RequestMapping(value="/applicationBootstrap.htm",method=RequestMethod.GET)
 	public String bootstrapForm(Model model){
 		log.debug("Received GET request on applicationBootstrap");
 		return "application-bootstrap";
 	}
 	
+	/**
+	 * Return a reference to the membership form.
+	 * @param model The object model. The {@link MembershipCategory} values are stored in here, and are used to render the appropriate JSPX page to the end-user.
+	 * @return The base string to locate the underling JSPX file to use for the {@link ViewResolver}
+	 */
 	@RequestMapping(value="/start-membership-form",method=RequestMethod.GET)
 	public String startForm(Model model) {
 		log.debug("Received GET request on start-membership-form");
@@ -85,6 +125,19 @@ public class ApplicationController {
 		return "membership-form";
 	}
 	
+	/**
+	 * Handle the end-user submitting the form.  The {@link MemberRequest} is validated using JSR-303 Bean validation, and the results are stored
+	 * in the {@link BindingResult}.  Additional business validation is performed here, and a {@link ValidationResponse} is constructed to send back
+	 * to the end-user.  If validation succeeded, the users' data is also persisted in the datastore as a new {@link Member} object using the 
+	 * {@link MemberRepository}. The Javascript on the JSPX processes the response and prompts the user with the next step, or forwards the user to the next page
+	 * 
+	 * TODO Implement business validation in a custom validator, and attach to the Bean as JSR-303 validation.
+	 * 
+	 * @param model The object model (not used)
+	 * @param memberRequest The values the user entered on the membership form, encapsualted as a JSON object.
+	 * @param result The result of binding the input JSON values to the {@link MemberRequest} object.
+	 * @return The results of validating the user's input data
+	 */
 	@RequestMapping(value="/submit-membership-form.json", method=RequestMethod.POST,consumes="application/json", produces="application/json")
 	public @ResponseBody ValidationResponse submitMemberForm(Model model, @RequestBody @Valid MemberRequest memberRequest, BindingResult result) {
 		log.debug("Received POST request on submit-membership-form.json with member request {}", memberRequest);
@@ -112,6 +165,16 @@ public class ApplicationController {
 		}
 	}
 	
+	/**
+	 * Show the user the success page.  Uses the input parameters containing the users' member ID and last name to retrieve the user data
+	 * from the underlying datastore.  If there is a match, the user is shown the application-complete page with their data.  If there isn't
+	 * a match, the user is forwarded to the no-match page.  
+	 * 
+	 * @param model The object model (not used)
+	 * @param memberId The user's application ID
+	 * @param lastName The user's last name
+	 * @return The base string to locate the underling JSPX file to use for the {@link ViewResolver}, either the success or no-match page.
+	 */
 	@RequestMapping(value="/application-complete.htm")
 	public String showSuccessPage(Model model, @RequestParam("id") String memberId, @RequestParam("lastName") String lastName) {
 		log.debug("Application complete detected wtih id '{}' and last name '{}'", memberId, lastName);
@@ -128,6 +191,15 @@ public class ApplicationController {
 		}
 	}
 
+	/**
+	 * Start the user's payment.  Retrieve the user's data (to pre-fill form fields using the {@link Model} to fill in values on the JSPX) and
+	 * forward the user to the payment page.
+	 * 
+	 * @param model The object Model.  Put the Member object in to pre-fill the appropriate fields on the JSPX (such as the member's address).
+	 * @param memberId The member ID.  Used to locate the correct member.
+	 * @param lastName The member last name.  Used to locate the correct member.
+	 * @return The base string to locate the underling JSPX file to use for the {@link ViewResolver}, either the payment page or no-match page.
+	 */
 	@RequestMapping(value="/start-payment.htm")
 	public String startPayment(Model model, @RequestParam("id") String memberId, @RequestParam("lastName") String lastName) {
 		log.debug("Received request to start payment for member ID '{}' with last name '{}'", memberId, lastName);
@@ -149,6 +221,15 @@ public class ApplicationController {
 		}
 	}
 	
+	/**
+	 * Process the credit card payment for the end-user. Will return a success or failure response to the end-user, using the same {@link ValidationResponse}
+	 * object the membership form uses.  Processing is more or less the same.  
+	 * 
+	 * @param model The object model (not used)
+	 * @param paymentCC The payment information provided by the user.  This contains all of their input payment metadata.
+	 * @param result The result of binding the input JSON values to the {@link PaymentCreditCard} object.
+	 * @return The 
+	 */
 	@RequestMapping(value="/submit-payment-cc.json", method=RequestMethod.POST, consumes="application/json", produces="application/json")
 	public @ResponseBody ValidationResponse payCC(Model model, @RequestBody @Valid PaymentCreditCard paymentCC, BindingResult result) {
 		log.debug("Received request to pay with Credit Card: {}", paymentCC);
@@ -198,6 +279,15 @@ public class ApplicationController {
 		}
 	}
 	
+	/**
+	 * Show the payment success page, after payments are successfully processed.  The URL to this page is included in the {@link ValidationResponse} the
+	 * create payment page responds to the client on a successful payment.
+	 * 
+	 * @param model The object Model.  Put the Member object in to pre-fill the appropriate fields on the JSPX (such as the member's address).
+	 * @param memberId The member ID.  Used to locate the correct member.
+	 * @param lastName The member last name.  Used to locate the correct member.
+	 * @return The base string to locate the underling JSPX file to use for the {@link ViewResolver}, either the success page or no-match page.
+	 */
 	@RequestMapping(value="/payment-complete.htm")
 	public String showPaymentSuccessPage(Model model, @RequestParam("id") String memberId, @RequestParam("lastName") String lastName) {
 
@@ -213,12 +303,22 @@ public class ApplicationController {
 		}
 	}
 
+	/**
+	 * Return a reference to the get member jspx page.  For looking up a successfully committed application.
+	 * @param model The object model (not used)
+	 * @return The base string to locate the underling JSPX file to use for the {@link ViewResolver}
+	 */
 	@RequestMapping(value="/retrieve-member.htm")
-	public String retrieveSuccessPage(Model model) {
+	public String retrieveMemberPage(Model model) {
 		log.debug("Received GET request on retrieve-member");
 		return "retrieve-member";
 	}
 	
+	/**
+	 * Return a reference to the rates form jspx page.  For changing pool membership rates.
+	 * @param model The object model (not used)
+	 * @return The base string to locate the underling JSPX file to use for the {@link ViewResolver}
+	 */
 	@RequestMapping(value="/manage/manage-rates.htm",method= RequestMethod.GET)
 	public String getRatesForm(Model model) {
 		log.debug("Received GET request on manage-rates");
@@ -244,6 +344,11 @@ public class ApplicationController {
 		return res;
 	}
 	
+	/**
+	 * Retrieve the current rates available to the end-user, via a serialized {@link MembershipOptionsList} Java bean.
+	 * @param model The object model (not used)
+	 * @return The serialized rates the user can currently select from.
+	 */
 	@RequestMapping(value="/manage/get-default-rate.json", method={RequestMethod.GET, RequestMethod.POST}) 
 	public @ResponseBody MembershipOptionsList getDefaultRates(Model model) {
 		log.debug("Received request on get-default-rate");
@@ -276,7 +381,7 @@ public class ApplicationController {
 	/**
 	 * Fetch the Manage Applications page
 	 * @param model The object model (not used)
-	 * @return The page JSPX to use
+	 * @return The base string to locate the underling JSPX file to use for the {@link ViewResolver}
 	 */
 	@RequestMapping(value="/manage/manage-applications.htm",method= RequestMethod.GET)
 	public String manageApplications(Model model) {
@@ -386,8 +491,8 @@ public class ApplicationController {
 	
 	/**
 	 * Persist the passed-in member into the datastore
-	 * @param member
-	 * @param opt
+	 * @param member The member object to persist
+	 * @param opt The option the user selected for their membership.  Used to set additional data, such as the cost.
 	 */
 	@Transactional
 	private String persistMember(Member member, MembershipOption opt) {
