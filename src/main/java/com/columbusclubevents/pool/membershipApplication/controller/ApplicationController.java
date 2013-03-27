@@ -495,45 +495,62 @@ public class ApplicationController {
 	 * @param opt The option the user selected for their membership.  Used to set additional data, such as the cost.
 	 */
 	@Transactional
-	private String persistMember(Member member, MembershipOption opt) {
+	private String persistMember(final Member member, final MembershipOption opt) {
 		log.debug("Member to persist: {}", member);
-		//fetch the remaining option data from the backing store by the option key
-		opt = memberOptionRepo.findByOptionKey(opt.getOptionKey()).get(0);
-		log.debug("Found membership option {}", opt);
+		
+		MemberAdditionalProperties properties = fetchMemberCategoryInfo(opt);
 		
 		//set the default member status
 		member.setMemberStatus(MemberStatus.NEW);
 		member.setMemberPaid(false);
 		
 		//set the membership properties retrieved from the membership options
-		member.setMemberCost(opt.getCost());
+		member.setMemberCost(properties.getCost());
 		
-		//refetch the category to get all properties
-		//GAE intermittently returns the child object with the back reference not set, so we need to defensively code against this.
-		Long memberCategoryId;
-		if(opt.getMemberCategoryParent() == null) {
-			memberCategoryId = opt.getId().getParent().getId();
-		}
-		else {
-			memberCategoryId = opt.getMemberCategoryParent().getId();
-		}
-		log.debug("Fetching membership category with ID: {}", memberCategoryId);
-		MembershipCategory cat = memberCategoryRepo.findOne(memberCategoryId);
-		log.debug("Setting membership category type on object: {}", cat);
-		member.setMemberType(cat.getTabDescription());
+		log.debug("Setting membership category type '{}' with cost '{}' on member", properties.getTabDescription(), properties.getCost());
+		member.setMemberType(properties.getTabDescription());
 		
 		//persist the member into the DB
 		log.debug("Persisting member info {}", member);
 		memberRepo.save(member);
 		log.debug("Entity persisted, now with ID {}", member.getId());
 		
-		/*
-		//generate the code for the member going forward
-		String identifier = StringUtils.rightPad(StringUtils.left(
-				member.getLastName(), 4), 4, '_').concat(member.getId().toString());
-		 */
-		
 		return member.getId().toString();
+	}
+	
+	/**
+	 * Fetches propertie s needed for perisisting a member.
+	 * Quick fix in production.
+	 * TODO Refactor this, needs to be much more beneficial
+	 * @param opt The membership option to fetch from
+	 * @return
+	 */
+	@Transactional
+	private MemberAdditionalProperties fetchMemberCategoryInfo(final MembershipOption opt) {
+		//fetch the remaining option data from the backing store by the option key
+		MembershipOption fullOpt = memberOptionRepo.findByOptionKey(opt.getOptionKey()).get(0);
+		log.debug("Found membership option {}", opt);
+		
+		//refetch the category to get all properties
+		//GAE intermittently returns the child object with the back reference not set, so we need to defensively code against this.
+		Long memberCategoryId;
+		/*
+		if(opt.getMemberCategoryParent() == null) {
+			memberCategoryId = opt.getId().getParent().getId();
+		}
+		else {
+			memberCategoryId = opt.getMemberCategoryParent().getId();
+		}
+		*/
+		memberCategoryId = fullOpt.getMemberCategoryParent().getId();
+		log.debug("Fetching membership category with ID: {}", memberCategoryId);
+		MembershipCategory cat = memberCategoryRepo.findOne(memberCategoryId);
+
+		MemberAdditionalProperties properties = new MemberAdditionalProperties();
+		properties.setCost(fullOpt.getCost());
+		properties.setTabDescription(cat.getTabDescription());
+		
+		return properties;
 	}
 	
 	@Transactional
@@ -618,6 +635,29 @@ public class ApplicationController {
 		catch(NumberFormatException e) {
 			log.error("Passed-in member Id '{}' caused a NumberFormatException during memberId parsing. Presuming user entered invalid member Id and returning null", lastName, e);
 			return null;
+		}
+	}
+	
+	/**
+	 * Additional properties bean to set on the Member object before persisting. Needs to be retrieved in a single
+	 * transaction, so encapsulating this in a bean to return from a method facilitates that.
+	 * @author wmoore
+	 *
+	 */
+	private class MemberAdditionalProperties {
+		Integer cost;
+		String tabDescription;
+		public Integer getCost() {
+			return cost;
+		}
+		public void setCost(Integer cost) {
+			this.cost = cost;
+		}
+		public String getTabDescription() {
+			return tabDescription;
+		}
+		public void setTabDescription(String tabDescription) {
+			this.tabDescription = tabDescription;
 		}
 	}
 }

@@ -38,8 +38,8 @@
                   <legend>Name</legend>
 	               <div class="controls controls-row" id="name">
 	                  <div class="control-group span3"><input id="firstName"     name="firstName"     type="text" class="inputFormElem" placeholder="First Name"   title="First Name" ></input></div>
-		               <div class="control-group span1"><input id="middleInitial" name="middleInitial" type="text" class="inputFormElem" placeholder="MI"           title="Middle Initial"></input></div>
-		               <div class="control-group span3"><input id="lastName"      name="lastName"      type="text" class="inputFormElem" placeholder="Last Name"    title="Last Name"></input></div>
+		               <!-- <div class="control-group span1"><input id="middleInitial" name="middleInitial" type="text" class="inputFormElem" placeholder="MI"           title="Middle Initial"></input></div> -->
+		               <div class="control-group span4"><input id="lastName"      name="lastName"      type="text" class="inputFormElem" placeholder="Last Name"    title="Last Name"></input></div>
 	               </div>
                </fieldset>
                <fieldset>

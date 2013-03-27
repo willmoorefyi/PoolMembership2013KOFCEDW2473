@@ -150,8 +150,8 @@
             </div>
             <tags:modal modalId="confirmDlg" titleElemId="confirmDlgTitle"
                titleText="Confirmation" bodyElemId="confirmDlgBody"
-               closeAllowed="true" confirmElemId="confirmDlgOk" confirmText="Ok">This will submit your your payment to Paypal for processing. 
-               Your credit card or paypal account will be debited immediately. Are you sure you wish to do this?</tags:modal>
+               closeAllowed="true" confirmElemId="confirmDlgOk" confirmText="Ok">This will submit your your payment to Stripe for processing. 
+               Your credit card will be debited immediately. Are you sure you wish to do this?</tags:modal>
             <tags:modal modalId="responseDlg" titleElemId="responseDlgTitle"
                bodyElemId="responseDlgBody" closeAllowed="true"
                confirmElemId="responseDlgOk" confirmText="Ok">No Text</tags:modal>
