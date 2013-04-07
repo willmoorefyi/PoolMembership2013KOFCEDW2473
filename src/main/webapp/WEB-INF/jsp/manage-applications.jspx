@@ -30,6 +30,9 @@
 	               <form id="statusForm" class=""  action="${memberStatusUrl}">
 		               <ul class="nav nav-pills nav-stacked" id="navbar"><jsp:text/></ul>
 	               </form>
+	                <p><button class="btn btn-primary" type="button" id="editButton">Set Status</button></p>
+                   <p><button class="btn btn-danger" type="button" id="addButton">Add New</button></p>
+                   <p><button class="btn btn-primary" type="button" id="approveButton">Approve Selected</button></p>
                </div>
             </div>
             <div class="span10">
@@ -39,20 +42,22 @@
 		         <form id="memberForm" class="application-form" action="${manageApplicationsFormUrl}">
 		            <table id="memberTable" class="table table-hover sortable">
 			            <thead>
+                        <th class="span1"><p>Application Time</p></th>
 			               <th class="span1"><p>First Name</p></th>
 			               <th class="span1"><p>Last Name</p></th>
-			               <th class="span3"><p>Member Type</p></th>
+                        <th class="span1"><p>Address</p></th>
+			               <th class="span2"><p>Member Type</p></th>
 			               <th class="span1"><p>Member #</p></th>
 			               <th class="span1"><p>Status</p></th>
 			               <th class="span2"><p>Email</p></th>
-                        <th class="span3"><p>Dependents</p></th>
+                        <th class="span2"><p>Dependents</p></th>
 			            </thead>
 			            <tbody>&#160;</tbody>
 		            </table>
 		         </form>
 		         <tags:modal modalId="confirmDlg" titleElemId="confirmDlgTitle"
 		            titleText="Confirmation" bodyElemId="confirmDlgBody"
-		            closeAllowed="true" confirmElemId="confirmDlgOk" confirmText="Ok">This will update the member data you have changed. Are you sure you wish to continue?</tags:modal>
+		            closeAllowed="true" confirmElemId="confirmDlgOk" confirmText="Ok">This will set the selected members' status to "Approved". Are you sure you wish to continue?</tags:modal>
 		         <tags:modal modalId="responseDlg" titleElemId="responseDlgTitle"
 		            bodyElemId="responseDlgBody" closeAllowed="true"
 		            confirmElemId="responseDlgOk" confirmText="Ok">No Text</tags:modal>

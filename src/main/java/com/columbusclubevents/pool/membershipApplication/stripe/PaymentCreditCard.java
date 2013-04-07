@@ -47,6 +47,8 @@ public class PaymentCreditCard {
 		paymentCC.addressPostalCode = member.getZip();
 		paymentCC.addressPhone = member.getPrimaryPhone();
 		
+		paymentCC.amount = member.getMemberCost().toString();
+		
 		return paymentCC;
 	}
 	

@@ -3,6 +3,7 @@ $(document).ready(function() {
 	$('input, textarea').placeholder();
 	$('#submitCCButton').click(confirmForm);
 	$('.modal').appendTo($('body'));
+	$('#amount').val('$ ' + $('#amount').val() + '.00');
 });
 
 /**

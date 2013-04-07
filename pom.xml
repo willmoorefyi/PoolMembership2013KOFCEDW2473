@@ -23,30 +23,33 @@
 	</properties>
 
 	<dependencies>
-      <!-- Custom Dependencies -->
-		<!-- <dependency>
-			<groupId>com.paypal.sdk</groupId>
-			<artifactId>rest-api-sdk</artifactId>
-			<version>0.5.2</version>
-		</dependency>-->
+		<!-- Custom Dependencies -->
+		<!-- <dependency> <groupId>com.paypal.sdk</groupId> <artifactId>rest-api-sdk</artifactId> 
+			<version>0.5.2</version> </dependency> -->
 		<dependency>
-		  <groupId>com.stripe</groupId>
-		  <artifactId>stripe-java</artifactId>
-		  <version>1.1.18</version>
+			<groupId>com.stripe</groupId>
+			<artifactId>stripe-java</artifactId>
+			<version>1.1.18</version>
 		</dependency>
-      
-      <!-- Apache Commons -->
-      <dependency>
-		   <groupId>commons-lang</groupId>
-		   <artifactId>commons-lang</artifactId>
-		   <version>2.6</version>
+
+		<!-- Apache Commons -->
+		<dependency>
+			<groupId>commons-lang</groupId>
+			<artifactId>commons-lang</artifactId>
+			<version>2.6</version>
 		</dependency>
 		<dependency>
 			<groupId>commons-codec</groupId>
 			<artifactId>commons-codec</artifactId>
 			<version>1.7</version>
 		</dependency>
-	
+		<dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+			<version>2.4</version>
+		</dependency>
+
+
 		<!-- Google App Engine dependencies -->
 		<dependency>
 			<groupId>com.google.appengine</groupId>
@@ -98,12 +101,12 @@
 		</dependency>
 
 		<!-- Logging -->
-      <dependency>
-		   <groupId>com.columbusclub</groupId>
-		   <artifactId>GAELogAppender</artifactId>
-         <version>1.0.0</version>
-         <scope>compile</scope>
-      </dependency>
+		<dependency>
+			<groupId>com.columbusclub</groupId>
+			<artifactId>GAELogAppender</artifactId>
+			<version>1.0.0</version>
+			<scope>compile</scope>
+		</dependency>
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
@@ -121,19 +124,19 @@
 			<artifactId>logback-classic</artifactId>
 			<version>${logback.version}</version>
 			<scope>runtime</scope>
-         <exclusions>
-            <exclusion>
-               <groupId>ch.qos.logback</groupId>
-               <artifactId>logback-core</artifactId>
-            </exclusion>
-         </exclusions>
+			<exclusions>
+				<exclusion>
+					<groupId>ch.qos.logback</groupId>
+					<artifactId>logback-core</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
-      <dependency>
-         <groupId>com.columbusclubevents.logbackwrapper</groupId>
-         <artifactId>logback-core</artifactId>
-         <version>0.0.1-SNAPSHOT</version>
-         <scope>runtime</scope>
-      </dependency>
+		<dependency>
+			<groupId>com.columbusclubevents.logbackwrapper</groupId>
+			<artifactId>logback-core</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+			<scope>runtime</scope>
+		</dependency>
 
 
 		<!-- Spring -->
@@ -261,6 +264,11 @@
 			<artifactId>hibernate-validator</artifactId>
 			<version>${hibernate.validator.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>javax.ws.rs</groupId>
+			<artifactId>jsr311-api</artifactId>
+			<version>1.1.1</version>
+		</dependency>
 
 		<!-- Test Dependencies -->
 		<dependency>
@@ -322,12 +330,9 @@
 				<version>${appengine.plugin.version}</version>
 				<configuration>
 					<jvmFlags>
-						<!-- 
-						<jvmFlag>-Xdebug</jvmFlag>
-						<jvmFlag>-Xrunjdwp:transport=dt_socket,address=1044,server=y,suspend=y</jvmFlag>
-						-->
+						<!-- <jvmFlag>-Xdebug</jvmFlag> <jvmFlag>-Xrunjdwp:transport=dt_socket,address=1044,server=y,suspend=y</jvmFlag> -->
 						<jvmFlag>-Ddatastore.default_high_rep_job_policy_unapplied_job_pct=20 </jvmFlag>
-					</jvmFlags> 
+					</jvmFlags>
 					<disableUpdateCheck>true</disableUpdateCheck>
 				</configuration>
 			</plugin>
@@ -336,7 +341,7 @@
 				<artifactId>maven-datanucleus-plugin</artifactId>
 				<version>3.0.2</version>
 				<configuration>
-               <fork>false</fork>
+					<fork>false</fork>
 					<api>JPA</api>
 					<persistenceUnitName>transactions-optional</persistenceUnitName>
 					<verbose>true</verbose>

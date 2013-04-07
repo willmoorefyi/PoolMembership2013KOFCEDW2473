@@ -46,6 +46,12 @@
 	                                 <div class="controls"><form:input path="memberId" type="text" class="inputFormElem" disabled="${'true'}"></form:input></div>
 	                              </div>
 	                           </div>
+                              <div class="controls-row" id="name">
+                                 <div class="control-group span5">
+                                    <label class="control-label" for="amount">Total:</label>
+                                    <div class="controls"><form:input path="amount" type="text" class="inputFormElem" disabled="${'true'}"></form:input></div>
+                                 </div>
+                              </div>
                            </fieldset>
                            <fieldset>
 	                           <legend>Billing Address:</legend>

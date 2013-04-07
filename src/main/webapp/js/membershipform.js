@@ -242,8 +242,6 @@ function enableConfirmForm() {
  * @param errorMessageList The list of errors from the server
  */
 function processServerErrors(errorMessageList) {
-	
-	
 	var body = $('<div>').addClass('row-fluid')
 		.append($('<div>').addClass('span12').append('There were errors with your submission'));
 		

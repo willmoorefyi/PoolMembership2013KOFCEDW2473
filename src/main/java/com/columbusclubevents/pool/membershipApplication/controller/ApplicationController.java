@@ -1,33 +1,44 @@
 package com.columbusclubevents.pool.membershipApplication.controller;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javax.annotation.PostConstruct;
+import javax.mail.MessagingException;
 import javax.validation.Valid;
 
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
+import com.columbusclubevents.pool.membershipApplication.email.EmailSendException;
+import com.columbusclubevents.pool.membershipApplication.email.MailSender;
 import com.columbusclubevents.pool.membershipApplication.model.Dependent;
 import com.columbusclubevents.pool.membershipApplication.model.Member;
 import com.columbusclubevents.pool.membershipApplication.model.MemberRequest;
 import com.columbusclubevents.pool.membershipApplication.model.MemberStatus;
+import com.columbusclubevents.pool.membershipApplication.model.MemberUpdateRequest;
 import com.columbusclubevents.pool.membershipApplication.model.MembershipCategory;
 import com.columbusclubevents.pool.membershipApplication.model.MembershipOption;
 import com.columbusclubevents.pool.membershipApplication.model.MembershipOptionsList;
@@ -91,6 +102,12 @@ public class ApplicationController {
 	@Autowired
 	private StripeRestWrapper stripeRestWrapper;
 
+	/**
+	 * The helper class to send confirmation emails
+	 */
+	@Autowired
+	private MailSender mailSender;
+	
 	/**
 	 * Method to invoke after the bean construction is complete.
 	 * Was initially used to reconfigure slf4j / logback, but is no longer necessary due to the usage of {@link GAELogAppender}.
@@ -409,8 +426,71 @@ public class ApplicationController {
 	 */
 	@RequestMapping(value="/manage/manage-applications.json",method=RequestMethod.POST, consumes="application/json", produces="application/json")
 	public @ResponseBody List<Member> retrieveFilteredApplications(Model model, @RequestBody MemberStatus request, BindingResult result) {
-		log.debug("Received POST request on manage-rates.json with filter input '{}'", request);
+		log.debug("Received POST request on manage-applications.json with filter input '{}'", request);
 		return fetchMembersByStatus(request);
+	}
+	
+	@RequestMapping(value="/manage/update-applications.json",method=RequestMethod.POST, consumes="application/json", produces="application/json")
+	public @ResponseBody ValidationResponse updateMemberApplications(Model mode, @RequestBody MemberUpdateRequest[] request, BindingResult result) {
+		log.debug("Received POST request on update-applications.json with filter input '{}'", Arrays.asList(request));
+		
+		if(Arrays.asList(request).isEmpty()) {
+			return createSingleErrorResponse("", "You did not specify any members to update");
+		}
+		
+		Long invalidMemberId = null;
+		//List<Member> members = new ArrayList<Member>();
+		for(MemberUpdateRequest memberUpdateRequest : request) {
+			Member member = memberRepo.findOne(memberUpdateRequest.getId());
+			if(member == null) {
+				invalidMemberId = memberUpdateRequest.getId();
+				break;
+			}
+			member.setMemberStatus(memberUpdateRequest.getMemberStatus());
+			//members.add(member);
+			memberRepo.save(member);
+			//initiate a task to send the approval email
+			if(memberUpdateRequest.getMemberStatus().equals(MemberStatus.APPROVED)) {
+				mailSender.googleEnqueueMessage(memberUpdateRequest.getId());
+			}
+		}
+		if(invalidMemberId != null) {
+			return createSingleErrorResponse(invalidMemberId.toString(), "Selected member ID '" + invalidMemberId + "' is invalid.  Please clear your selection, refresh the page, and try again");
+		}
+		else {
+			//can't save multiple entities in one transaction, as they may span multiple entity groups due to the way GAE handles JPA entities
+			//memberRepo.save(members);
+			return createSuccessResponse();
+		}
+	}
+	
+	@RequestMapping(value="/sendemail/{memberId}/sendAcceptance.htm",method=RequestMethod.POST)
+	public @ResponseBody String sendAcceptanceEmail(@PathVariable Long memberId) throws EmailSendException {
+		log.debug("Received request to send acceptance email to member {}", memberId);
+		Member member = memberRepo.findOne(memberId);
+		if(member == null) {
+			log.warn("Attempted to send a member confirmation email to member ID '{}', but no valid member found", memberId);
+		}
+		try {
+	      mailSender.sendAcceptanceMessage(member.getEmail(), member.getId().toString(), member.getPaymentId(), member.getMemberType().equals("Knights of Columbus - EDW 2473 Council Member"));
+	      member.setMemberStatus(MemberStatus.COMPLETE);
+	      memberRepo.save(member);
+	      return "OK";
+      } catch (MessagingException e) {
+      	log.error("Unable to send acceptance confirmation for member '{}' due to messaging exception", memberId, e);
+      	throw new EmailSendException(e);
+      	
+      } catch (IOException e) {
+      	log.error("Unable to send acceptance confirmation for member '{}' due to IO exception", memberId, e);
+      	throw new EmailSendException(e);
+      }
+	}
+	
+	@ExceptionHandler(EmailSendException.class)
+	@ResponseStatus(value=HttpStatus.I_AM_A_TEAPOT)
+	private Map<String, String> handleAcceptanceEmailException(EmailSendException e) {
+		log.error("Handling exception");
+		return Collections.singletonMap("message", e.getMessage());
 	}
 	
 	/**
@@ -521,12 +601,41 @@ public class ApplicationController {
 	/**
 	 * Fetches propertie s needed for perisisting a member.
 	 * Quick fix in production.
-	 * TODO Refactor this, needs to be much more beneficial
+	 * TODO Refactor this, needs to be much more clean. Need to understand why we get null keys from appengine
 	 * @param opt The membership option to fetch from
 	 * @return
 	 */
 	@Transactional
 	private MemberAdditionalProperties fetchMemberCategoryInfo(final MembershipOption opt) {
+
+		MemberAdditionalProperties properties = new MemberAdditionalProperties();
+		
+		String key = opt.getOptionKey(); 
+		if(key.equalsIgnoreCase("nonmember")) {
+			log.warn("Returning HARD-CODED value to avoid appengine high-replication datastore null key issue");
+			properties.setCost(890);
+			properties.setTabDescription("Non EDW 2473 Council Member");
+			return properties;
+		} 
+		else if (key.equalsIgnoreCase("memberFamily")) {
+			log.warn("Returning HARD-CODED value to avoid appengine high-replication datastore null key issue");
+			properties.setCost(475);
+			properties.setTabDescription("Knights of Columbus - EDW 2473 Council Member");
+			return properties;
+		}
+		else if (key.equalsIgnoreCase("memberSingle")) {
+			log.warn("Returning HARD-CODED value to avoid appengine high-replication datastore null key issue");
+			properties.setCost(245);
+			properties.setTabDescription("Knights of Columbus - EDW 2473 Council Member");
+			return properties;
+		}
+		else if (key.equalsIgnoreCase("memberSwimPass")) {
+			log.warn("Returning HARD-CODED value to avoid appengine high-replication datastore null key issue");
+			properties.setCost(200);
+			properties.setTabDescription("Knights of Columbus - EDW 2473 Council Member");
+			return properties;
+		}
+		
 		//fetch the remaining option data from the backing store by the option key
 		MembershipOption fullOpt = memberOptionRepo.findByOptionKey(opt.getOptionKey()).get(0);
 		log.debug("Found membership option {}", opt);
@@ -546,7 +655,6 @@ public class ApplicationController {
 		log.debug("Fetching membership category with ID: {}", memberCategoryId);
 		MembershipCategory cat = memberCategoryRepo.findOne(memberCategoryId);
 
-		MemberAdditionalProperties properties = new MemberAdditionalProperties();
 		properties.setCost(fullOpt.getCost());
 		properties.setTabDescription(cat.getTabDescription());
 		
@@ -557,7 +665,7 @@ public class ApplicationController {
 	private List<Member> fetchMembersByStatus(MemberStatus status) {
 		log.debug("Retrieving members with status {}", status);
 		List<Member> members = memberRepo.findByMemberStatus(status);
-		log.debug("Returned members: '{}'", members);
+		log.trace("Returned members: '{}'", members);
 		return members;
 	}
 	
