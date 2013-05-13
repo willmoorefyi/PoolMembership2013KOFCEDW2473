@@ -26,8 +26,8 @@ public class CsvView extends AbstractView {
 			response.setHeader("Content-Disposition", "attachment; filename=\"members.csv\"");
 			List<Member> members = (List<Member>)model.get("members");
 			for(Member member : members) {
-				log.debug("Writing member {}", member);
-				writer.write(member.toString());
+				//log.debug("Writing member {}", member);
+				writer.write(member.toCSVString());
 				writer.newLine();
 			}
 		} finally {

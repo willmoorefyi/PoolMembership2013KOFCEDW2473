@@ -308,6 +308,38 @@ public class Member implements Serializable {
 		return builder.toString();
 	}
 	
+	public String toCSVString() {
+		StringBuilder builder = new StringBuilder();
+		builder.append(firstName).append(",")
+			.append(middleInitial).append(",")
+			.append(lastName).append(",")
+			.append(addressLine1).append(",")
+			.append(addressLine2).append(",")
+			.append(city).append(",")
+			.append(state).append(",")
+			.append(zip).append(",")
+			.append(primaryPhone).append(",")
+			.append(secondaryPhone).append(",")
+			.append(email).append(",")
+			.append(memberType).append(",")
+			.append(validationInput).append(",")
+			.append(memberCost).append(",")
+			.append(memberStatus).append(",")
+			.append(memberPaid).append(",")
+			.append(paymentId).append(",")
+			.append(applicationTime).append(",");
+		
+		for(Dependent dependent : dependents) {
+			builder.append(dependent.getRelationType()).append(": ")
+				.append(dependent.getName().getFirstName()).append(" ")
+				.append(dependent.getName().getLastName()).append(" ")
+				.append(dependent.getExtraData())
+				.append("|");
+		}
+		
+		return builder.toString();
+	}
+	
 	/*
 	@NotNull 
 	@Valid
