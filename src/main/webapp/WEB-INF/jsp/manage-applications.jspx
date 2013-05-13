@@ -33,6 +33,7 @@
 	                <p><button class="btn btn-primary" type="button" id="editButton">Set Status</button></p>
                    <p><button class="btn btn-danger" type="button" id="addButton">Add New</button></p>
                    <p><button class="btn btn-primary" type="button" id="approveButton">Approve Selected</button></p>
+                   <p><button class="btn btn-primary" type="button" id="exportButton">Export All</button></p>
                </div>
             </div>
             <div class="span10">
@@ -62,6 +63,7 @@
 		            bodyElemId="responseDlgBody" closeAllowed="true"
 		            confirmElemId="responseDlgOk" confirmText="Ok">No Text</tags:modal>
 		      </div>
+		      <form id="downloadForm" class="" action="/manage/download-applications.htm" method="get"></form>
          </div>
       </div>
 	</body>

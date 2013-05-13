@@ -31,7 +31,10 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.servlet.ModelAndView;
 
+import com.columbusclubevents.pool.membershipApplication.csv.CsvResponse;
+import com.columbusclubevents.pool.membershipApplication.csv.CsvView;
 import com.columbusclubevents.pool.membershipApplication.email.EmailSendException;
 import com.columbusclubevents.pool.membershipApplication.email.MailSender;
 import com.columbusclubevents.pool.membershipApplication.model.Dependent;
@@ -430,6 +433,24 @@ public class ApplicationController {
 		return fetchMembersByStatus(request);
 	}
 	
+	@RequestMapping(value="/manage/download-applications.htm",method=RequestMethod.GET)
+	public ModelAndView exportMembers(Model model) {
+		log.debug("Received POST request on download-applications.htm to export CSV");
+		List<Member> members = fetchAllMembers();
+		model.addAttribute("members", members);
+		return new ModelAndView(new CsvView(), model.asMap());
+	}
+	
+	/*
+	@RequestMapping(value="/manage/download-applications.htm",method=RequestMethod.GET, produces="text/csv;charset=utf-8")
+	@ResponseBody
+	public CsvResponse exportMembersbyStatus(Model model) {
+		log.debug("Received POST request on download-applications.json to export CSV");
+		List<Member> members = fetchAllMembers();
+		return new CsvResponse(members, "members.csv");
+	}
+	*/
+	
 	@RequestMapping(value="/manage/update-applications.json",method=RequestMethod.POST, consumes="application/json", produces="application/json")
 	public @ResponseBody ValidationResponse updateMemberApplications(Model mode, @RequestBody MemberUpdateRequest[] request, BindingResult result) {
 		log.debug("Received POST request on update-applications.json with filter input '{}'", Arrays.asList(request));
@@ -659,6 +680,18 @@ public class ApplicationController {
 		properties.setTabDescription(cat.getTabDescription());
 		
 		return properties;
+	}
+	
+	@Transactional
+	private List<Member> fetchAllMembers() {
+		log.debug("Fetching all members");
+		List<Member> members = memberRepo.findAll();
+		List<Member> membersAndDependents = new ArrayList<Member>(members.size());
+		for(Member member : members) {
+			log.debug("Processing next member: {} with dependents {}", member, member.getDependents());
+			membersAndDependents.add(member);
+		}
+		return membersAndDependents;
 	}
 	
 	@Transactional

@@ -3,6 +3,7 @@ $(document).ready(function() {
 	$('#editButton').click(editForm);
 	$('#confirmDlgOk').click(approveForm);
 	$('#approveButton').click(clickApprove);
+	$('#exportButton').click(clickExport);
 });
 
 /**
@@ -236,4 +237,10 @@ function showSuccess(msgLabel, msgBody) {
 function editForm(event) {
 	//do nothing
 	//$(this).find('.row_selected')
+}
+
+function clickExport(event) {
+	var status = $('#navbar li.active a').attr('status');
+	//do nothing with status
+	$('#downloadForm').submit();
 }

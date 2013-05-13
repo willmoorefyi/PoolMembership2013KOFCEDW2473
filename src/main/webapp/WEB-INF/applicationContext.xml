@@ -44,7 +44,14 @@
 	<context:component-scan base-package="com.columbusclubevents.pool.membershipApplication" />
 
 	<!-- Configures the @Controller programming model -->
-	<mvc:annotation-driven />
+	<mvc:annotation-driven>
+	  <mvc:message-converters>
+	     <bean class="com.columbusclubevents.pool.membershipApplication.csv.CsvMessageConverter"/>
+	     <bean class="org.springframework.http.converter.StringHttpMessageConverter"/>
+        <bean class="org.springframework.http.converter.ResourceHttpMessageConverter"/>
+        <bean class="org.springframework.http.converter.json.MappingJacksonHttpMessageConverter"/>
+    </mvc:message-converters>
+	</mvc:annotation-driven>
 
 	<!-- Use annotations for JPA transaction content -->
 	<tx:annotation-driven />
