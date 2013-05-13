@@ -685,11 +685,14 @@ public class ApplicationController {
 	@Transactional
 	private List<Member> fetchAllMembers() {
 		log.debug("Fetching all members");
-		List<Member> members = memberRepo.findAll();
-		List<Member> membersAndDependents = new ArrayList<Member>(members.size());
-		for(Member member : members) {
-			log.debug("Processing next member: {} with dependents {}", member, member.getDependents());
-			membersAndDependents.add(member);
+		List<Member> membersAndDependents = new ArrayList<Member>();
+		for(MemberStatus status : MemberStatus.values()) {
+			List<Member> members = fetchMembersByStatus(status);
+			log.debug("Returned members: {}", members);
+			for(Member member : members) {
+				log.debug("Processing next member ID: {}", member.getId());
+				membersAndDependents.add(member);
+			}
 		}
 		return membersAndDependents;
 	}
