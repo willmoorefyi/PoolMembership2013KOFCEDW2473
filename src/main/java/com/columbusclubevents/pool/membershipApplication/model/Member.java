@@ -310,34 +310,38 @@ public class Member implements Serializable {
 	
 	public String toCSVString() {
 		StringBuilder builder = new StringBuilder();
-		builder.append(firstName).append(",")
-			.append(middleInitial).append(",")
-			.append(lastName).append(",")
-			.append(addressLine1).append(",")
-			.append(addressLine2).append(",")
-			.append(city).append(",")
-			.append(state).append(",")
-			.append(zip).append(",")
-			.append(primaryPhone).append(",")
-			.append(secondaryPhone).append(",")
-			.append(email).append(",")
-			.append(memberType).append(",")
-			.append(validationInput).append(",")
+		builder.append(cleanse(firstName)).append(",")
+			.append(middleInitial == null ? "" : middleInitial).append(",")
+			.append(cleanse(lastName)).append(",")
+			.append(cleanse(addressLine1)).append(",")
+			.append(cleanse(addressLine2)).append(",")
+			.append(cleanse(city)).append(",")
+			.append(cleanse(state)).append(",")
+			.append(cleanse(zip)).append(",")
+			.append(cleanse(primaryPhone)).append(",")
+			.append(cleanse(secondaryPhone)).append(",")
+			.append(cleanse(email)).append(",")
+			.append(cleanse(memberType)).append(",")
+			.append(cleanse(validationInput)).append(",")
 			.append(memberCost).append(",")
 			.append(memberStatus).append(",")
 			.append(memberPaid).append(",")
-			.append(paymentId).append(",")
+			.append(cleanse(paymentId)).append(",")
 			.append(applicationTime).append(",");
 		
 		for(Dependent dependent : dependents) {
-			builder.append(dependent.getRelationType()).append(": ")
-				.append(dependent.getName().getFirstName()).append(" ")
-				.append(dependent.getName().getLastName()).append(" ")
-				.append(dependent.getExtraData())
+			builder.append(cleanse(dependent.getRelationType())).append(": ")
+				.append(cleanse(dependent.getName().getFirstName())).append(" ")
+				.append(cleanse(dependent.getName().getLastName())).append(" ")
+				.append(cleanse(dependent.getExtraData()))
 				.append("|");
 		}
 		
 		return builder.toString();
+	}
+	
+	private String cleanse(String input) {
+		return StringUtils.defaultString(StringUtils.replace(input, ",", "_"));
 	}
 	
 	/*
