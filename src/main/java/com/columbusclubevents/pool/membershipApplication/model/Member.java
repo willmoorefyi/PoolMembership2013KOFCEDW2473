@@ -328,13 +328,15 @@ public class Member implements Serializable {
 			.append(memberPaid).append(",")
 			.append(cleanse(paymentId)).append(",")
 			.append(applicationTime).append(",");
-		
-		for(Dependent dependent : dependents) {
-			builder.append(cleanse(dependent.getRelationType())).append(": ")
-				.append(cleanse(dependent.getName().getFirstName())).append(" ")
-				.append(cleanse(dependent.getName().getLastName())).append(" ")
-				.append(cleanse(dependent.getExtraData()))
-				.append("|");
+
+		if(dependents != null) {
+			for(Dependent dependent : dependents) {
+				builder.append(cleanse(dependent.getRelationType())).append(": ")
+					.append(cleanse(dependent.getName().getFirstName())).append(" ")
+					.append(cleanse(dependent.getName().getLastName())).append(" ")
+					.append(cleanse(dependent.getExtraData()))
+					.append("|");
+			}
 		}
 		
 		return builder.toString();

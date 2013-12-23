@@ -33,7 +33,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.servlet.ModelAndView;
 
-import com.columbusclubevents.pool.membershipApplication.csv.CsvResponse;
 import com.columbusclubevents.pool.membershipApplication.csv.CsvView;
 import com.columbusclubevents.pool.membershipApplication.email.EmailSendException;
 import com.columbusclubevents.pool.membershipApplication.email.MailSender;
@@ -688,9 +687,8 @@ public class ApplicationController {
 		List<Member> membersAndDependents = new ArrayList<Member>();
 		for(MemberStatus status : MemberStatus.values()) {
 			List<Member> members = fetchMembersByStatus(status);
-			log.debug("Returned members: {}", members);
+			log.debug("Returned members count '{}' for status '{}'", members.size(), status);
 			for(Member member : members) {
-				log.debug("Processing next member ID: {}", member.getId());
 				membersAndDependents.add(member);
 			}
 		}
