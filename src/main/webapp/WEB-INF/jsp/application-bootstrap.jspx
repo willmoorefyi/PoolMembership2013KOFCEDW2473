@@ -20,25 +20,13 @@
 		   <jsp:include page="include/header-kofc-pool.jspx"/>
 		   <div class="container">
 		      <div class="hero-unit header-color-neutral">
-               <h1>Join the Pool in 2013!<small> Knights of Columbus</small></h1>
+               <h1>Pool Registration Closed</h1>
 		      </div>
 		      <div class="row-fluid">
-		         <div class="span4 offset2">
-		            <div class="well well-large">
-		               <h3>New Application</h3>
-		               <p>Select this option if you are beginning a new pool membership application form for the summer of 2013, regardless of your membership status.</p>
-		               <p><a class="btn btn-primary btn-block" href="/start-membership-form.htm">Start</a></p>
-		            </div>
-	            </div>
-	            <div class="span4">
-	              <div class="well well-large">
-	                 <h3>Resume Application</h3>
-	                 <p>Select this option if you are resuming a pool membership application for the summer of 2013 that you had previously saved.</p>
-	                 <p><a class="btn btn-block" href="/retrieve-member.htm">Resume</a></p>
-                 </div>
-	            </div>
+		          <h2>Thank you for your interest in our swimming pools.  Registration for the 2013 season is now closed.  
+		          We hope to be able to welcome you to our pools in 2014.  Enjoy the summer!</h2>
 		      </div>
-		   </div>
+	      </div>
 		</div>
    </body>
 </html>
