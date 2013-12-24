@@ -12,3 +12,7 @@ building can be very slow.  If you have the maven eclipse plugin (_m2e_) and the
 __should__ be able to run `mvn eclipse:eclipse` to get a valid eclipse project.  However, I never had any
 luck running within eclipse, and frankly never cared as I would run from the command line using `mvn 
 appengine:devserver`.  For a full list of appengine commands, run `mvn help:describe -Dplugin=appengine`
+
+###Notes
+There appears to be an issue with Datanucleus that prevents the application from compiling if run with Maven 
+3.1.x. Instead, run with Maven 3.0.x
