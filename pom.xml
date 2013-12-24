@@ -101,12 +101,6 @@
 
 		<!-- Logging -->
 		<dependency>
-			<groupId>com.columbusclub</groupId>
-			<artifactId>GAELogAppender</artifactId>
-			<version>1.0.0</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
 			<version>${slf4j.version}</version>
