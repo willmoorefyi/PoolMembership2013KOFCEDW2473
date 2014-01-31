@@ -87,7 +87,7 @@ public class MailSender {
 		mp.addBodyPart(attachmentParking);
 		
 		MimeBodyPart attachmentRules = new MimeBodyPart();
-		attachmentRules.setFileName("Pool Rules 2013.pdf");
+		attachmentRules.setFileName("Pool Rules 2014.pdf");
 		byte[] attachmentRulesData = IOUtils.toByteArray(rulesAttachment.getInputStream());
 		DataSource rulesSrc = new ByteArrayDataSource(attachmentRulesData, "application/pdf");
 		attachmentRules.setDataHandler(new DataHandler(rulesSrc));

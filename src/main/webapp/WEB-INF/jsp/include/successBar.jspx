@@ -4,7 +4,7 @@
    xmlns:form="http://www.springframework.org/tags/form"
    xmlns:tags="urn:jsptagdir:/WEB-INF/tags" >
 	<div class="page-header">
-	   <h1>Your Application is Complete!<br/><small>2013 Season, Knights of Columbus, Arlington Pool</small></h1>
+	   <h1>Your Application is Complete!<br/><small>2014 Season, Knights of Columbus, Arlington Pool</small></h1>
 	</div>
 	<div class="hero-unit header-color-neutral">
 	   <h2 class="successBar">Membership Application Number</h2>

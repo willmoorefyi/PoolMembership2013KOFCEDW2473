@@ -28,7 +28,7 @@
       <jsp:include page="include/header-columbus-club.jspx" />
 		<div class="container">
 			<div class="page-header">
-				<h1>Manage 2013 Rates</h1>
+				<h1>Manage 2014 Rates</h1>
 			</div>
 			<form id="RateForm" class="form-horizontal application-form">
 			   <fieldset>&#160;</fieldset>

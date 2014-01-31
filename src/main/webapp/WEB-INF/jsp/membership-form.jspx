@@ -30,7 +30,7 @@
          <jsp:include page="include/header-kofc-pool.jspx"/>
          <div class="container">
             <div class="page-header">
-               <h1>Membership Application Form<br/><small>2013 Season, Knights of Columbus, Arlington Pool</small></h1>
+               <h1>Membership Application Form<br/><small>2014 Season, Knights of Columbus, Arlington Pool</small></h1>
             </div>
             <h3>Please Enter Your Information Below</h3>
             <form class="application-form" id="application-form">

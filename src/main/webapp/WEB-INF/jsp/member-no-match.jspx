@@ -21,7 +21,7 @@
          <jsp:include page="include/header-kofc-pool.jspx"/>
          <div class="container">
 	         <div class="page-header">
-	            <h1>Oops!<br/><small>2013 Season, Knights of Columbus, Arlington Pool</small></h1>
+	            <h1>Oops!<br/><small>2014 Season, Knights of Columbus, Arlington Pool</small></h1>
 	         </div>
 	         <div class="row">
 	            <div class="span12">
