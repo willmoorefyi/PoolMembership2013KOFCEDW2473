@@ -633,13 +633,13 @@ public class ApplicationController {
 		String key = opt.getOptionKey(); 
 		if(key.equalsIgnoreCase("nonmember")) {
 			log.warn("Returning HARD-CODED value to avoid appengine high-replication datastore null key issue");
-			properties.setCost(890);
+			properties.setCost(895);
 			properties.setTabDescription("Non EDW 2473 Council Member");
 			return properties;
 		} 
 		else if (key.equalsIgnoreCase("memberFamily")) {
 			log.warn("Returning HARD-CODED value to avoid appengine high-replication datastore null key issue");
-			properties.setCost(475);
+			properties.setCost(520);
 			properties.setTabDescription("Knights of Columbus - EDW 2473 Council Member");
 			return properties;
 		}
