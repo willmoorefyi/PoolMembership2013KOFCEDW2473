@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.Resource;
 import javax.mail.MessagingException;
 import javax.validation.Valid;
 
@@ -99,20 +100,21 @@ public class ApplicationController {
 
 	/**
 	 * The Wrapper for the REST API integration with the payment processor, Stripe..
-	 * This replaces the earlier {@link PaypalRestWrapper}, which was inconsistent in its performance.  
+	 * This replaces the earlier PaypalRestWrapper, which was inconsistent in its performance.
 	 */
-	@Autowired
+	@Resource
 	private StripeRestWrapper stripeRestWrapper;
 
 	/**
 	 * The helper class to send confirmation emails
 	 */
-	@Autowired
+	@Resource(name="mailSender")
 	private MailSender mailSender;
 	
 	/**
 	 * Method to invoke after the bean construction is complete.
-	 * Was initially used to reconfigure slf4j / logback, but is no longer necessary due to the usage of {@link GAELogAppender}.
+	 * Was initially used to reconfigure slf4j / logback, but is no longer necessary due to the usage of
+	 * {@link com.columbusclubevents.GAELogAppender}.
 	 */
 	@PostConstruct
 	public void init() {
@@ -122,11 +124,11 @@ public class ApplicationController {
 	
 	/**
 	 * Return a reference to the boostrap jspx page.
-	 * @param model The object model (not used)
-	 * @return The base string to locate the underling JSPX file to use for the {@link ViewResolver}
+	 * @return The base string to locate the underling JSPX file to use for the
+	 * {@link org.springframework.web.servlet.ViewResolver}
 	 */
 	@RequestMapping(value="/applicationBootstrap.htm",method=RequestMethod.GET)
-	public String bootstrapForm(Model model){
+	public String bootstrapForm(){
 		log.debug("Received GET request on applicationBootstrap");
 		return "application-bootstrap";
 	}
@@ -134,7 +136,7 @@ public class ApplicationController {
 	/**
 	 * Return a reference to the membership form.
 	 * @param model The object model. The {@link MembershipCategory} values are stored in here, and are used to render the appropriate JSPX page to the end-user.
-	 * @return The base string to locate the underling JSPX file to use for the {@link ViewResolver}
+	 * @return The base string to locate the underling JSPX file to use for the {@link org.springframework.web.servlet.ViewResolver}
 	 */
 	@RequestMapping(value="/start-membership-form",method=RequestMethod.GET)
 	public String startForm(Model model) {
@@ -148,17 +150,17 @@ public class ApplicationController {
 	 * Handle the end-user submitting the form.  The {@link MemberRequest} is validated using JSR-303 Bean validation, and the results are stored
 	 * in the {@link BindingResult}.  Additional business validation is performed here, and a {@link ValidationResponse} is constructed to send back
 	 * to the end-user.  If validation succeeded, the users' data is also persisted in the datastore as a new {@link Member} object using the 
-	 * {@link MemberRepository}. The Javascript on the JSPX processes the response and prompts the user with the next step, or forwards the user to the next page
+	 * {@link com.columbusclubevents.pool.membershipApplication.dao.MemberDAO}. The Javascript on the JSPX processes the response and prompts the
+	 * user with the next step, or forwards the user to the next page
 	 * 
 	 * TODO Implement business validation in a custom validator, and attach to the Bean as JSR-303 validation.
 	 * 
-	 * @param model The object model (not used)
 	 * @param memberRequest The values the user entered on the membership form, encapsualted as a JSON object.
 	 * @param result The result of binding the input JSON values to the {@link MemberRequest} object.
 	 * @return The results of validating the user's input data
 	 */
 	@RequestMapping(value="/submit-membership-form.json", method=RequestMethod.POST,consumes="application/json", produces="application/json")
-	public @ResponseBody ValidationResponse submitMemberForm(Model model, @RequestBody @Valid MemberRequest memberRequest, BindingResult result) {
+	public @ResponseBody ValidationResponse submitMemberForm(@RequestBody @Valid MemberRequest memberRequest, BindingResult result) {
 		log.debug("Received POST request on submit-membership-form.json with member request {}", memberRequest);
 		if(result.hasErrors()){
 			log.debug("Validation errors on input member form");
@@ -189,10 +191,9 @@ public class ApplicationController {
 	 * from the underlying datastore.  If there is a match, the user is shown the application-complete page with their data.  If there isn't
 	 * a match, the user is forwarded to the no-match page.  
 	 * 
-	 * @param model The object model (not used)
 	 * @param memberId The user's application ID
 	 * @param lastName The user's last name
-	 * @return The base string to locate the underling JSPX file to use for the {@link ViewResolver}, either the success or no-match page.
+	 * @return The base string to locate the underling JSPX file to use for the ViewResolver, either the success or no-match page.
 	 */
 	@RequestMapping(value="/application-complete.htm")
 	public String showSuccessPage(Model model, @RequestParam("id") String memberId, @RequestParam("lastName") String lastName) {
@@ -217,22 +218,17 @@ public class ApplicationController {
 	 * @param model The object Model.  Put the Member object in to pre-fill the appropriate fields on the JSPX (such as the member's address).
 	 * @param memberId The member ID.  Used to locate the correct member.
 	 * @param lastName The member last name.  Used to locate the correct member.
-	 * @return The base string to locate the underling JSPX file to use for the {@link ViewResolver}, either the payment page or no-match page.
+	 * @return The base string to locate the underling JSPX file to use for the ViewResolver, either the payment page or no-match page.
 	 */
 	@RequestMapping(value="/start-payment.htm")
 	public String startPayment(Model model, @RequestParam("id") String memberId, @RequestParam("lastName") String lastName) {
 		log.debug("Received request to start payment for member ID '{}' with last name '{}'", memberId, lastName);
-		
-		//log.debug("Forwarding user to redirect url '{}'", redirectUrl);
-		//return new ModelAndView(new ExternalRedirectView(redirectUrl));
 
 		Member member = retrieveMember(memberId, lastName);
 		if(member != null) {
 			//prep the new models
 			PaymentCreditCard paymentCC = PaymentCreditCard.fromMember(member);
-			//PaymentPaypal paymentPaypal = new PaymentPaypal();
 			model.addAttribute("paymentCC", paymentCC);
-			//model.addAttribute("paymentPaypal", paymentPaypal);
 			return "create-payment";
 		}
 		else {
@@ -244,13 +240,12 @@ public class ApplicationController {
 	 * Process the credit card payment for the end-user. Will return a success or failure response to the end-user, using the same {@link ValidationResponse}
 	 * object the membership form uses.  Processing is more or less the same.  
 	 * 
-	 * @param model The object model (not used)
 	 * @param paymentCC The payment information provided by the user.  This contains all of their input payment metadata.
 	 * @param result The result of binding the input JSON values to the {@link PaymentCreditCard} object.
 	 * @return The 
 	 */
 	@RequestMapping(value="/submit-payment-cc.json", method=RequestMethod.POST, consumes="application/json", produces="application/json")
-	public @ResponseBody ValidationResponse payCC(Model model, @RequestBody @Valid PaymentCreditCard paymentCC, BindingResult result) {
+	public @ResponseBody ValidationResponse payCC(@RequestBody @Valid PaymentCreditCard paymentCC, BindingResult result) {
 		log.debug("Received request to pay with Credit Card: {}", paymentCC);
 		
 		//handle any binding errors
@@ -305,7 +300,7 @@ public class ApplicationController {
 	 * @param model The object Model.  Put the Member object in to pre-fill the appropriate fields on the JSPX (such as the member's address).
 	 * @param memberId The member ID.  Used to locate the correct member.
 	 * @param lastName The member last name.  Used to locate the correct member.
-	 * @return The base string to locate the underling JSPX file to use for the {@link ViewResolver}, either the success page or no-match page.
+	 * @return The base string to locate the underling JSPX file to use for the ViewResolver, either the success page or no-match page.
 	 */
 	@RequestMapping(value="/payment-complete.htm")
 	public String showPaymentSuccessPage(Model model, @RequestParam("id") String memberId, @RequestParam("lastName") String lastName) {
@@ -324,28 +319,26 @@ public class ApplicationController {
 
 	/**
 	 * Return a reference to the get member jspx page.  For looking up a successfully committed application.
-	 * @param model The object model (not used)
-	 * @return The base string to locate the underling JSPX file to use for the {@link ViewResolver}
+	 * @return The base string to locate the underling JSPX file to use for the ViewResolver
 	 */
 	@RequestMapping(value="/retrieve-member.htm")
-	public String retrieveMemberPage(Model model) {
+	public String retrieveMemberPage() {
 		log.debug("Received GET request on retrieve-member");
 		return "retrieve-member";
 	}
 	
 	/**
 	 * Return a reference to the rates form jspx page.  For changing pool membership rates.
-	 * @param model The object model (not used)
-	 * @return The base string to locate the underling JSPX file to use for the {@link ViewResolver}
+	 * @return The base string to locate the underling JSPX file to use for the ViewResolver
 	 */
 	@RequestMapping(value="/manage/manage-rates.htm",method= RequestMethod.GET)
-	public String getRatesForm(Model model) {
+	public String getRatesForm() {
 		log.debug("Received GET request on manage-rates");
 		return "manage-rates";
 	}
 	
 	@RequestMapping(value="/manage/manage-rates.json",method=RequestMethod.POST,consumes="application/json", produces="application/json")
-	public @ResponseBody ValidationResponse updateRates(Model model, @RequestBody @Valid MembershipOptionsList memberOpts, BindingResult result) {
+	public @ResponseBody ValidationResponse updateRates(@RequestBody @Valid MembershipOptionsList memberOpts, BindingResult result) {
 		log.debug("Received POST request on manage-rates.json");
 		log.debug("Membership options returned: {}", memberOpts);
 		ValidationResponse res = new ValidationResponse();
@@ -365,11 +358,10 @@ public class ApplicationController {
 	
 	/**
 	 * Retrieve the current rates available to the end-user, via a serialized {@link MembershipOptionsList} Java bean.
-	 * @param model The object model (not used)
 	 * @return The serialized rates the user can currently select from.
 	 */
 	@RequestMapping(value="/manage/get-default-rate.json", method={RequestMethod.GET, RequestMethod.POST}) 
-	public @ResponseBody MembershipOptionsList getDefaultRates(Model model) {
+	public @ResponseBody MembershipOptionsList getDefaultRates() {
 		log.debug("Received request on get-default-rate");
 		MembershipOptionsList options = getCurrentOptions();
 		if(options.getMemberCategories().isEmpty()) {
@@ -399,35 +391,31 @@ public class ApplicationController {
 	
 	/**
 	 * Fetch the Manage Applications page
-	 * @param model The object model (not used)
-	 * @return The base string to locate the underling JSPX file to use for the {@link ViewResolver}
+	 * @return The base string to locate the underling JSPX file to use for the ViewResolver
 	 */
 	@RequestMapping(value="/manage/manage-applications.htm",method= RequestMethod.GET)
-	public String manageApplications(Model model) {
+	public String manageApplications() {
 		log.debug("Received GET request on manage-applications.htm");
 		return "manage-applications";
 	}
 	
 	/**
 	 * Retrieve the list of all possible member statuses. Used to generate the sort options for the table
-	 * @param model The object model (not used)
 	 * @return A list of member status objects, to serialize as JSON and return to the caller
 	 */
 	@RequestMapping(value="/manage/get-default-member-status-values.json",method=RequestMethod.GET, produces="application/json")
-	public @ResponseBody List<MemberStatus> getMemberStatusValues(Model model) {
+	public @ResponseBody List<MemberStatus> getMemberStatusValues() {
 		log.debug("Received GET request on get-default-member-status-values.json");
 		return Arrays.asList(MemberStatus.values());	
 	}
 	
 	/**
 	 * Retrieve the list of all members that match the filter criteria passed in.
-	 * @param model The object model (not used)
 	 * @param request The filter request from the client (as a string)
-	 * @param result The result of binding the input string to the MemberStatus object.  Should never be in error
 	 * @return The list of Member objects that match the filter status specified
 	 */
 	@RequestMapping(value="/manage/manage-applications.json",method=RequestMethod.POST, consumes="application/json", produces="application/json")
-	public @ResponseBody List<Member> retrieveFilteredApplications(Model model, @RequestBody MemberStatus request, BindingResult result) {
+	public @ResponseBody List<Member> retrieveFilteredApplications(@RequestBody MemberStatus request) {
 		log.debug("Received POST request on manage-applications.json with filter input '{}'", request);
 		return fetchMembersByStatus(request);
 	}
@@ -440,22 +428,18 @@ public class ApplicationController {
 		return new ModelAndView(new CsvView(), model.asMap());
 	}
 	
-	/*
-	@RequestMapping(value="/manage/download-applications.htm",method=RequestMethod.GET, produces="text/csv;charset=utf-8")
-	@ResponseBody
-	public CsvResponse exportMembersbyStatus(Model model) {
-		log.debug("Received POST request on download-applications.json to export CSV");
-		List<Member> members = fetchAllMembers();
-		return new CsvResponse(members, "members.csv");
-	}
-	*/
-	
 	@RequestMapping(value="/manage/update-applications.json",method=RequestMethod.POST, consumes="application/json", produces="application/json")
-	public @ResponseBody ValidationResponse updateMemberApplications(Model mode, @RequestBody MemberUpdateRequest[] request, BindingResult result) {
+	public @ResponseBody ValidationResponse updateMemberApplications(@RequestBody MemberUpdateRequest[] request, BindingResult result) {
 		log.debug("Received POST request on update-applications.json with filter input '{}'", Arrays.asList(request));
 		
 		if(Arrays.asList(request).isEmpty()) {
 			return createSingleErrorResponse("", "You did not specify any members to update");
+		}
+
+		//handle any binding errors
+		if(result.hasErrors()){
+			log.debug("Validation errors on input payment form");
+			return createErrorResponse(processErrors(result));
 		}
 		
 		Long invalidMemberId = null;
@@ -541,7 +525,7 @@ public class ApplicationController {
 	
 	/**
 	 * Generate an error validation response with a list of error messages
-	 * @param errorMessages
+	 * @param errorMessages Any error messages from a binding
 	 * @return The validation response object
 	 */
 	private ValidationResponse createErrorResponse(List<ErrorMessage> errorMessages) {
@@ -568,7 +552,7 @@ public class ApplicationController {
 	/**
 	 * Clears the current membership categories and reload with the new list.
 	 * This simplifies the process of loading new membership options into the application
-	 * @param memberCategories
+	 * @param memberCategories The categories to update the values to
 	 */
 	@Transactional
 	private void clearAndUpdateMembershipCategories(List<MembershipCategory> memberCategories) {
@@ -619,11 +603,11 @@ public class ApplicationController {
 	}
 	
 	/**
-	 * Fetches propertie s needed for perisisting a member.
+	 * Fetches properties needed for perisisting a member.
 	 * Quick fix in production.
 	 * TODO Refactor this, needs to be much more clean. Need to understand why we get null keys from appengine
 	 * @param opt The membership option to fetch from
-	 * @return
+	 * @return The Additional properties needed to create a final Member object
 	 */
 	@Transactional
 	private MemberAdditionalProperties fetchMemberCategoryInfo(final MembershipOption opt) {
@@ -663,14 +647,6 @@ public class ApplicationController {
 		//refetch the category to get all properties
 		//GAE intermittently returns the child object with the back reference not set, so we need to defensively code against this.
 		Long memberCategoryId;
-		/*
-		if(opt.getMemberCategoryParent() == null) {
-			memberCategoryId = opt.getId().getParent().getId();
-		}
-		else {
-			memberCategoryId = opt.getMemberCategoryParent().getId();
-		}
-		*/
 		memberCategoryId = fullOpt.getMemberCategoryParent().getId();
 		log.debug("Fetching membership category with ID: {}", memberCategoryId);
 		MembershipCategory cat = memberCategoryRepo.findOne(memberCategoryId);
@@ -707,7 +683,7 @@ public class ApplicationController {
 	 * Validate the option the member selected as compared to the membership form.
 	 * @param opt The membership option selected
 	 * @param member The member object
-	 * @return
+	 * @return Any error messages that occur from validating a member
 	 */
 	private List<ErrorMessage> internalValidateMemberOptions(MembershipOption opt, Member member) {
 		List<ErrorMessage> errorMessages = new ArrayList<ErrorMessage>();
@@ -770,7 +746,7 @@ public class ApplicationController {
 				return member;
 			}
 			else {
-				log.warn("Member Id found for ID '{}', but with last name '{}' and not passed-in last name '{}'. Returning null", new Object[] {memberId, (member == null ? null : member.getLastName()), lastName});
+				log.warn("Member Id found for ID '{}', but with last name '{}' and not passed-in last name '{}'. Returning null", memberId, (member == null ? null : member.getLastName()), lastName);
 				return null;
 			}
 		}
