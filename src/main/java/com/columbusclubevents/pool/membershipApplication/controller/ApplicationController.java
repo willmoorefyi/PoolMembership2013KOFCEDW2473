@@ -150,7 +150,7 @@ public class ApplicationController {
 	 * Handle the end-user submitting the form.  The {@link MemberRequest} is validated using JSR-303 Bean validation, and the results are stored
 	 * in the {@link BindingResult}.  Additional business validation is performed here, and a {@link ValidationResponse} is constructed to send back
 	 * to the end-user.  If validation succeeded, the users' data is also persisted in the datastore as a new {@link Member} object using the 
-	 * {@link com.columbusclubevents.pool.membershipApplication.dao.MemberDAO}. The Javascript on the JSPX processes the response and prompts the
+	 * {@link com.columbusclubevents.pool.membershipApplication.repository.MemberRepository}. The Javascript on the JSPX processes the response and prompts the
 	 * user with the next step, or forwards the user to the next page
 	 * 
 	 * TODO Implement business validation in a custom validator, and attach to the Bean as JSR-303 validation.
@@ -177,7 +177,7 @@ public class ApplicationController {
 				return createErrorResponse(dependentErrors);
 			}
 			log.debug("Validation of member form succeeded!");
-			MembershipOption opt = memberRequest.getMembershipOption();
+			MembershipOption opt = fetchOptionFromRequestOpt(memberRequest.getMembershipOption());
 			String memberIdent = persistMember(member, opt);
 			ValidationResponse res = createSuccessResponse();
 			res.setSuccessIdentifier(memberIdent);
@@ -604,8 +604,6 @@ public class ApplicationController {
 	
 	/**
 	 * Fetches properties needed for perisisting a member.
-	 * Quick fix in production.
-	 * TODO Refactor this, needs to be much more clean. Need to understand why we get null keys from appengine
 	 * @param opt The membership option to fetch from
 	 * @return The Additional properties needed to create a final Member object
 	 */
@@ -613,47 +611,16 @@ public class ApplicationController {
 	private MemberAdditionalProperties fetchMemberCategoryInfo(final MembershipOption opt) {
 
 		MemberAdditionalProperties properties = new MemberAdditionalProperties();
-		
-		String key = opt.getOptionKey(); 
-		if(key.equalsIgnoreCase("nonmember")) {
-			log.warn("Returning HARD-CODED value to avoid appengine high-replication datastore null key issue");
-			properties.setCost(895);
-			properties.setTabDescription("Non EDW 2473 Council Member");
-			return properties;
-		} 
-		else if (key.equalsIgnoreCase("memberFamily")) {
-			log.warn("Returning HARD-CODED value to avoid appengine high-replication datastore null key issue");
-			properties.setCost(520);
-			properties.setTabDescription("Knights of Columbus - EDW 2473 Council Member");
-			return properties;
-		}
-		else if (key.equalsIgnoreCase("memberSingle")) {
-			log.warn("Returning HARD-CODED value to avoid appengine high-replication datastore null key issue");
-			properties.setCost(245);
-			properties.setTabDescription("Knights of Columbus - EDW 2473 Council Member");
-			return properties;
-		}
-		else if (key.equalsIgnoreCase("memberSwimPass")) {
-			log.warn("Returning HARD-CODED value to avoid appengine high-replication datastore null key issue");
-			properties.setCost(200);
-			properties.setTabDescription("Knights of Columbus - EDW 2473 Council Member");
-			return properties;
-		}
-		
-		//fetch the remaining option data from the backing store by the option key
-		MembershipOption fullOpt = memberOptionRepo.findByOptionKey(opt.getOptionKey()).get(0);
-		log.debug("Found membership option {}", opt);
-		
+
 		//refetch the category to get all properties
-		//GAE intermittently returns the child object with the back reference not set, so we need to defensively code against this.
 		Long memberCategoryId;
-		memberCategoryId = fullOpt.getMemberCategoryParent().getId();
+		memberCategoryId = opt.getMemberCategoryParent().getId();
 		log.debug("Fetching membership category with ID: {}", memberCategoryId);
 		MembershipCategory cat = memberCategoryRepo.findOne(memberCategoryId);
 
-		properties.setCost(fullOpt.getCost());
+		properties.setCost(opt.getCost());
 		properties.setTabDescription(cat.getTabDescription());
-		
+
 		return properties;
 	}
 	
@@ -677,6 +644,11 @@ public class ApplicationController {
 		List<Member> members = memberRepo.findByMemberStatus(status);
 		log.trace("Returned members: '{}'", members);
 		return members;
+	}
+
+	@Transactional
+	private MembershipOption fetchOptionFromRequestOpt(MembershipOption option) {
+		return memberOptionRepo.findByOptionKey(option.getOptionKey()).get(0);
 	}
 	
 	/**
