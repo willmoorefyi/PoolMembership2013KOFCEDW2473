@@ -1,17 +1,17 @@
 package com.columbusclubevents;
 
 import java.util.logging.Logger;
-
+/*
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.encoder.PatternLayoutEncoder;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.AppenderBase;
-
+*/
 /**
  * 
  * @author Eurig Jones
  */
-public class GAELogAppender extends AppenderBase<ILoggingEvent> {
+public class GAELogAppender { /*extends AppenderBase<ILoggingEvent> {
     private static final Logger log = Logger.getLogger("logback");
     PatternLayoutEncoder encoder;
 
@@ -44,4 +44,5 @@ public class GAELogAppender extends AppenderBase<ILoggingEvent> {
     public void setEncoder(PatternLayoutEncoder encoder) {
         this.encoder = encoder;
     }
+    */
 }
