@@ -30,7 +30,7 @@
 	               <form id="statusForm" class=""  action="${memberStatusUrl}">
 		               <ul class="nav nav-pills nav-stacked" id="navbar"><jsp:text/></ul>
 	               </form>
-	                <p><button class="btn btn-primary" type="button" id="editButton">Set Status</button></p>
+	                <p><button class="btn btn-primary" type="button" id="setStatus">Set Status</button></p>
                    <p><button class="btn btn-danger" type="button" id="addButton">Add New</button></p>
                    <p><button class="btn btn-primary" type="button" id="approveButton">Approve Selected</button></p>
                    <p><button class="btn btn-primary" type="button" id="exportButton">Export All</button></p>
@@ -59,6 +59,11 @@
 		         <tags:modal modalId="confirmDlg" titleElemId="confirmDlgTitle"
 		            titleText="Confirmation" bodyElemId="confirmDlgBody"
 		            closeAllowed="true" confirmElemId="confirmDlgOk" confirmText="Ok">This will set the selected members' status to "Approved". Are you sure you wish to continue?</tags:modal>
+                 <tags:modal modalId="statusDlg" titleElemId="statusDlgTitle"
+                    titleText="Set Status" bodyElemId="statusDlgBody"
+                    closeAllowed="true" confirmElemId="confirmStatusDlgOk" confirmText="Set">
+                    Select the status you would like to set for this user: <select class="form-control" id="status-select"><jsp:text/></select>
+                 </tags:modal>
 		         <tags:modal modalId="responseDlg" titleElemId="responseDlgTitle"
 		            bodyElemId="responseDlgBody" closeAllowed="true"
 		            confirmElemId="responseDlgOk" confirmText="Ok">No Text</tags:modal>

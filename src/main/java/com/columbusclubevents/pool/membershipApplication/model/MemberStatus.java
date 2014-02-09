@@ -6,5 +6,6 @@ public enum MemberStatus {
 	APPROVED,
 	PENDINGAPPROVAL,
 	PENDINGDUES,
+	BALANCEDUE,
 	COMPLETE
 }

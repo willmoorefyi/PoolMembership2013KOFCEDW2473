@@ -1,8 +1,11 @@
 $(document).ready(function() {
 	getCurrentMemberStatusValues();
-	$('#editButton').click(editForm);
-	$('#confirmDlgOk').click(approveForm);
-	$('#approveButton').click(clickApprove);
+	$('#setStatus').click(clickSetStatus);
+    $('#confirmStatusDlgOk').click(setStatus);
+
+    $('#approveButton').click(clickApprove);
+    $('#confirmDlgOk').click(approveForm);
+
 	$('#exportButton').click(clickExport);
 });
 
@@ -14,8 +17,9 @@ function getCurrentMemberStatusValues() {
 	$.getJSON(url, function(data) {
 		$.each(data, function(index, status) {
 			$('#navbar').append($('<li>').append($('<a>').attr('href', '#').attr('status', status).append(status).click(clickNavbar) ) );
+            $('#status-select').append($('<option>').attr('value', status).append(status));
 		});
-		getDefaultApplicationStatus();
+		window.setTimeout(getDefaultApplicationStatus, 1);
 	});
 }
 
@@ -131,8 +135,12 @@ function clickApprove(event) {
 	$('#confirmDlg').modal('show');
 }
 
+function clickSetStatus(event) {
+    $('#statusDlg').modal('show');
+}
+
 function approveForm(event) {
-	disableConfirmForm();
+	disableModalForm('#confirmDlgOk');
 	
 	var requestData = [ ];
 	
@@ -151,35 +159,68 @@ function approveForm(event) {
 	    type:'POST',
 		success: function(response) {
 			if (response.status == 'FAIL') {
-				processServerErrors(response.errorMessageList);
+				processServerErrors(response.errorMessageList, '#confirmDlg', '#confirmDlgOk');
 			}
 			else {
-				showSuccess("Submission Successful", "Your changes were successfully committted.  Please refresh the page to see your changes take effect.");
+				showSuccess("Submission Successful", "Your changes were successfully committted.  Please refresh the page to see your changes take effect.", '#confirmDlg','#confirmDlgOk');
 			}
 			
 		}, 
 		error: function(jqXHR, textStatus, errorThrown) {
-			showError('Server Error', 'There were errors with your submission. Server Responded with ' + textStatus + ': ' + errorThrown);
+			showError('Server Error', 'There were errors with your submission. Server Responded with ' + textStatus + ': ' + errorThrown, '#confirmDlg', '#confirmDlgOk');
 		}
 	});
 	return false;
 
 }
 
+function setStatus(event) {
+    disableModalForm('#confirmStatusDlgOk');
+    var requestData = [ ];
+
+    var status = $('#status-select').val();
+    $('tr.row_selected').each(function(index, elem) {
+        var memberUpdateRequest = { };
+        memberUpdateRequest.id = elem.id;
+        memberUpdateRequest.memberStatus = status;
+        requestData[index] = memberUpdateRequest;
+    });
+
+    var url = "/manage/update-applications.json";
+    $.ajax(url, {
+        data: JSON.stringify(requestData),
+        contentType: 'application/json; charset=UTF-8',
+        dataType: 'json',
+        type:'POST',
+        success: function(response) {
+            if (response.status == 'FAIL') {
+                processServerErrors(response.errorMessageList, '#statusDlg', '#confirmStatusDlgOk');
+            }
+            else {
+                showSuccess("Submission Successful", "Your changes were successfully committted.  Please refresh the page to see your changes take effect.", '#statusDlg','#confirmStatusDlgOk');
+            }
+
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+            showError('Server Error', 'There were errors with your submission. Server Responded with ' + textStatus + ': ' + errorThrown, '#statusDlg', '#confirmStatusDlgOk');
+        }
+    });
+}
+
 /**
  * Disable the confirmation form while posting data
  */
-function disableConfirmForm() {
-	$('#confirmDlgOk').attr('disabled', 'disabled');
-	$('#confirmDlgOk').addClass('disabled');
+function disableModalForm(formButton) {
+	$(formButton).attr('disabled', 'disabled');
+	$(formButton).addClass('disabled');
 }
 
 /**
  * Enable the confirmation form after data posting complete
  */
-function enableConfirmForm() {
-	$('#confirmDlgOk').removeAttr('disabled');
-	$('#confirmDlgOk').removeClass('disabled');
+function enableModalForm(formButton) {
+	$(formButton).removeAttr('disabled');
+	$(formButton).removeClass('disabled');
 }
 
 
@@ -187,7 +228,7 @@ function enableConfirmForm() {
  * Process the errors returned by the server into the error message box
  * @param errorMessageList The list of errors from the server
  */
-function processServerErrors(errorMessageList) {	
+function processServerErrors(errorMessageList, srcDialog, srcButton) {
 	var body = $('<div>').addClass('row-fluid')
 		.append($('<div>').addClass('span12').append('There were errors with your submission'));
 		
@@ -195,7 +236,7 @@ function processServerErrors(errorMessageList) {
 		body.append($('<div>').addClass('span12').append((index+1) + '. ' + this.message));
 	});
 	body.append($('<div>').addClass('span12').append('Please correct these errors and resubmit the form'));
-	showError('Validation Errors on Submission', body);
+	showError('Validation Errors on Submission', body, srcDialog, srcButton);
 }
 
 /**
@@ -203,9 +244,9 @@ function processServerErrors(errorMessageList) {
  * @param errorLabel The title of the message box
  * @param errorBody The message to put in the message box body. Note that this can contain HTML markup.
  */
-function showError(errorLabel, errorBody) {
-	$('#confirmDlg').modal('hide');
-	enableConfirmForm();
+function showError(errorLabel, errorBody, srcDialog, srcButton) {
+	$(srcDialog).modal('hide');
+	enableModalForm(srcButton);
 	$('#responseDlg').addClass('alert alert-error');
 	$('#responseDlgTitle').text(errorLabel);
 	$('#responseDlgBody').empty().append(errorBody);
@@ -221,10 +262,10 @@ function showError(errorLabel, errorBody) {
  * @param errorLabel The title of the message box
  * @param errorBody The message to put in the message box body.
  */
-function showSuccess(msgLabel, msgBody) {
-	$('#confirmDlg').modal('hide');
+function showSuccess(msgLabel, msgBody, srcDialog, srcButton) {
+	$(srcDialog).modal('hide');
 	$('#responseDlg').removeClass('alert alert-error');
-	enableConfirmForm();
+	enableModalForm(srcButton);
 	$('#responseDlgTitle').text(msgLabel);
 	$('#responseDlgBody').empty().append(msgBody);
 	$('#responseDlgOk').removeClass('btn-danger').click(function() {
@@ -232,11 +273,6 @@ function showSuccess(msgLabel, msgBody) {
 		$('#responseDlgOk').off('click');
 	});
 	$('#responseDlg').modal('show');	
-}
-
-function editForm(event) {
-	//do nothing
-	//$(this).find('.row_selected')
 }
 
 function clickExport(event) {
