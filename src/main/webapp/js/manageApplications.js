@@ -6,6 +6,9 @@ $(document).ready(function() {
     $('#approveButton').click(clickApprove);
     $('#confirmDlgOk').click(approveForm);
 
+    $('#deleteButton').click(clickDelete);
+    $('#deleteDlgOk').click(deleteForm);
+
 	$('#exportButton').click(clickExport);
 });
 
@@ -140,6 +143,10 @@ function clickSetStatus(event) {
     $('#statusDlg').modal('show');
 }
 
+function clickDelete(event) {
+    $('#deleteDlg').modal('show');
+}
+
 function approveForm(event) {
 	disableModalForm('#confirmDlgOk');
 	
@@ -163,7 +170,7 @@ function approveForm(event) {
 				processServerErrors(response.errorMessageList, '#confirmDlg', '#confirmDlgOk');
 			}
 			else {
-				showSuccess("Submission Successful", "Your changes were successfully committted.  Please refresh the page to see your changes take effect.", '#confirmDlg','#confirmDlgOk');
+				showSuccess("Submission Successful", "Your changes were successfully committted.  The selection will now refresh.", '#confirmDlg','#confirmDlgOk');
 			}
 			
 		}, 
@@ -198,7 +205,7 @@ function setStatus(event) {
                 processServerErrors(response.errorMessageList, '#statusDlg', '#confirmStatusDlgOk');
             }
             else {
-                showSuccess("Submission Successful", "Your changes were successfully committted.  Please refresh the page to see your changes take effect.", '#statusDlg','#confirmStatusDlgOk');
+                showSuccess("Submission Successful", "Your changes were successfully committted.  The selection will now refresh.", '#statusDlg','#confirmStatusDlgOk');
             }
 
         },
@@ -206,6 +213,37 @@ function setStatus(event) {
             showError('Server Error', 'There were errors with your submission. Server Responded with ' + textStatus + ': ' + errorThrown, '#statusDlg', '#confirmStatusDlgOk');
         }
     });
+}
+
+function deleteForm(event) {
+    disableModalForm('#deleteDlgOk');
+
+    var $selectedElem = $('tr.row_selected');
+    if ($selectedElem.length < 1) {
+        showError('Must Select 1', 'You must select 1 member to delete.', '#deleteDlg', '#deleteDlgOk');
+    }
+    else if($selectedElem.length > 1) {
+        showError('Too Many Selected', 'You may only delete 1 member at a time.', '#deleteDlg', '#deleteDlgOk');
+    }
+    else {
+        var memberDeleteId = $selectedElem.attr('id');
+        $.ajax("/manage/" + memberDeleteId + "/member.json", {
+            contentType: 'application/json; charset=UTF-8',
+            dataType: 'json',
+            type:'DELETE',
+            success: function(response) {
+                if (response.status == 'FAIL') {
+                    processServerErrors(response.errorMessageList, '#deleteDlg', '#deleteDlgOk');
+                }
+                else {
+                    showSuccess("Delete Successful", "Your member delete was successfully committed.  The selection will now refresh.", '#deleteDlg', '#deleteDlgOk');
+                }
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                showError('Server Error', 'There were errors with your submission. Server Responded with ' + textStatus + ': ' + errorThrown, '#deleteDlg', '#deleteDlgOk');
+            }
+        });
+    }
 }
 
 /**
@@ -273,7 +311,11 @@ function showSuccess(msgLabel, msgBody, srcDialog, srcButton) {
 		$('#responseDlg').modal('hide');
 		$('#responseDlgOk').off('click');
 	});
-	$('#responseDlg').modal('show');	
+	$('#responseDlg').modal('show');
+    window.setTimeout(function() {
+        //$('#navbar a').get(1).click();
+        $('#navbar').find('.active').children('a').click();
+    }, 10);
 }
 
 function clickExport(event) {

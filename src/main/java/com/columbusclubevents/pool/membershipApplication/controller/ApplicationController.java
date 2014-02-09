@@ -467,6 +467,27 @@ public class ApplicationController {
 			return createSuccessResponse();
 		}
 	}
+
+	@RequestMapping(value="/manage/{memberId}/member.json", method=RequestMethod.DELETE, produces="application/json")
+	public @ResponseBody ValidationResponse deleteMember(@PathVariable Long memberId) {
+		log.debug("Deleting member Id {}", memberId);
+
+		Member member = memberRepo.findOne(memberId);
+		ValidationResponse response = null;
+		if(member == null) {
+			response = createSingleErrorResponse(memberId.toString(), "Selected member ID '" + memberId + "' is invalid.  Please clear your selection, refresh the page, and try again");
+		}
+		else if (member.getMemberPaid()) {
+			response = createSingleErrorResponse(memberId.toString(), "Selected member ID '" + memberId + "' has a payment ID.  You cannot delete members who have valid payment IDs.");
+		}
+		else {
+			memberRepo.delete(member);
+			response = createSuccessResponse();
+		}
+
+		log.debug("Returning delete member response '{}'", response);
+		return response;
+	}
 	
 	@RequestMapping(value="/sendemail/{memberId}/sendAcceptance.htm",method=RequestMethod.POST)
 	public @ResponseBody String sendAcceptanceEmail(@PathVariable Long memberId) throws EmailSendException {

@@ -48,6 +48,16 @@ public class ValidationResponse {
 	public void setUrl(String url) {
 		this.url = url;
 	}
-	
-	
+
+	@Override
+	public String toString() {
+		final StringBuilder sb = new StringBuilder("ValidationResponse{");
+		sb.append("status='").append(status).append('\'');
+		sb.append(", errorMessageList=").append(errorMessageList);
+		sb.append(", successIdentifier='").append(successIdentifier).append('\'');
+		sb.append(", lastName='").append(lastName).append('\'');
+		sb.append(", url='").append(url).append('\'');
+		sb.append('}');
+		return sb.toString();
+	}
 }
