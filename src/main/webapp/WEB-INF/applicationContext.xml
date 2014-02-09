@@ -29,7 +29,7 @@
 
     <bean id="mailSender" class="com.columbusclubevents.pool.membershipApplication.email.MailSender">
         <property name="from" value="operations@columbusclubevents.com"/>
-        <property name="subject" value="Welcome to the Knights of Columbus Pool for the 2014ß Season!"/>
+        <property name="subject" value="Welcome to the Knights of Columbus Pool for the 2014 Season!"/>
         <property name="memberConfirmationFileText" value="classpath:email/Email Confirmation Members.txt"/>
         <property name="nonmemberConfirmationFileText" value="classpath:email/Email Confirmation Non-Members.txt"/>
         <property name="memberConfirmationFileHtm" value="classpath:email/Email Confirmation Members.htm"/>

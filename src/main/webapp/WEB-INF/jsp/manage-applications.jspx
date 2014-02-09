@@ -46,8 +46,9 @@
                         <th class="span1"><p>Application Time</p></th>
 			               <th class="span1"><p>First Name</p></th>
 			               <th class="span1"><p>Last Name</p></th>
-                        <th class="span1"><p>Address</p></th>
+                           <th class="span1"><p>Address</p></th>
 			               <th class="span2"><p>Member Type</p></th>
+                           <th class="span1"><p>Amount</p></th>
 			               <th class="span1"><p>Member #</p></th>
 			               <th class="span1"><p>Status</p></th>
 			               <th class="span2"><p>Email</p></th>

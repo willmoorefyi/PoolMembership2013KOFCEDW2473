@@ -73,6 +73,7 @@ function addMember(member) {
 			.append($('<td>').append(member.addressLine1).append($('<br/>'))
 					.append(member.addressLine2 + ' ' + member.city + ', ' + member.state + ' ' + member.zip))
 			.append($('<td>').append(member.memberType))
+            .append($('<td>').append(member.memberCost))
 			.append($('<td>').append(member.validationInput))
 			.append($('<td>').append(member.memberStatus))
 			.append($('<td>').append(member.email))
