@@ -39,17 +39,19 @@ public class MailSender {
 	private Resource parkingAttachment;
 	private Resource rulesAttachment;
 	private String from;
-	private String subject;
+	private String welcomeSubject;
+	private String paymentSubject;
+	private String urlRoot;
 
-	public void googleEnqueueMessage(Long memberId) {
-		log.debug("Enqueueing task for member '{}'", memberId);
+	public void googleEnqueueMessage(Long id, String endpoint) {
+		log.debug("Enqueueing task for ID '{}'", id);
 		Queue queue = QueueFactory.getDefaultQueue();
 		queue.add(TaskOptions.Builder.withUrl(
-		      "/sendemail/" + memberId.toString() + "/sendAcceptance.htm")
+		      "/sendemail/" + id.toString() + "/" + endpoint)
 		      .method(Method.POST));
 	}
 
-	public void sendAcceptanceMessage(String to, String memberId, String paymentId, boolean member)
+	public void sendAcceptanceMessage(String to, boolean member)
 	      throws MessagingException, IOException {
 		log.debug("Sending acceptance letter to: {}", to);
 		Properties props = new Properties();
@@ -60,9 +62,9 @@ public class MailSender {
 		
 		msg.setFrom(new InternetAddress(from));
 		msg.addRecipient(Message.RecipientType.TO, new InternetAddress(to));
-		msg.setSubject(subject); //String.format(subject, memberId, StringUtils.isEmpty(paymentId) ? "N/A" : paymentId) 
+		msg.setSubject(welcomeSubject); //String.format(welcomeSubject, memberId, StringUtils.isEmpty(paymentId) ? "N/A" : paymentId)
 		
-      MimeBodyPart htmlPart = new MimeBodyPart();
+        MimeBodyPart htmlPart = new MimeBodyPart();
 		MimeBodyPart textPart = new MimeBodyPart();
 		StringWriter htmlWriter = new StringWriter();
 		StringWriter textWriter = new StringWriter();
@@ -96,7 +98,39 @@ public class MailSender {
 		msg.setContent(mp);
 		log.debug("sending message: {}", msg.getContent());
 		Transport.send(msg);
+	}
 
+	public void sendPaymentEmail(String to, String relativeUrl) throws MessagingException, IOException {
+		log.debug("Sending payment letter to '{}' with URL '{}'", to, relativeUrl);
+		String fullUrl = urlRoot + relativeUrl;
+		log.debug("Computed full URL as: {}", fullUrl);
+		Properties props = new Properties();
+		Session session = Session.getDefaultInstance(props, null);
+
+		Message msg = new MimeMessage(session);
+		Multipart mp = new MimeMultipart();
+
+		msg.setFrom(new InternetAddress(from));
+		msg.addRecipient(Message.RecipientType.TO, new InternetAddress(to));
+		msg.setSubject(welcomeSubject); //String.format(welcomeSubject, memberId, StringUtils.isEmpty(paymentId) ? "N/A" : paymentId)
+
+		MimeBodyPart htmlPart = new MimeBodyPart();
+		MimeBodyPart textPart = new MimeBodyPart();
+		StringWriter htmlWriter = new StringWriter();
+		StringWriter textWriter = new StringWriter();
+
+		// TODO HERE!!!
+		IOUtils.copy(nonmemberConfirmationFileHtm.getInputStream(), htmlWriter, "UTF-8");
+		IOUtils.copy(nonmemberConfirmationFileText.getInputStream(), textWriter, "UTF-8");
+
+		htmlPart.setContent(htmlWriter.toString(), "text/html; charset=utf-8");
+		textPart.setText(textWriter.toString(), "utf-8");
+		mp.addBodyPart(textPart);
+		mp.addBodyPart(htmlPart);
+
+		msg.setContent(mp);
+		log.debug("sending message: {}", msg.getContent());
+		Transport.send(msg);
 	}
 
 	public String getFrom() {
@@ -107,12 +141,12 @@ public class MailSender {
 		this.from = from;
 	}
 
-	public String getSubject() {
-		return subject;
+	public String getWelcomeSubject() {
+		return welcomeSubject;
 	}
 
-	public void setSubject(String subject) {
-		this.subject = subject;
+	public void setWelcomeSubject(String welcomeSubject) {
+		this.welcomeSubject = welcomeSubject;
 	}
 
 	public Resource getParkingAttachment() {
@@ -163,5 +197,21 @@ public class MailSender {
 	public void setNonmemberConfirmationFileHtm(
 	      Resource nonmemberConfirmationFileHtm) {
 		this.nonmemberConfirmationFileHtm = nonmemberConfirmationFileHtm;
+	}
+
+	public String getPaymentSubject() {
+		return paymentSubject;
+	}
+
+	public void setPaymentSubject(String paymentSubject) {
+		this.paymentSubject = paymentSubject;
+	}
+
+	public String getUrlRoot() {
+		return urlRoot;
+	}
+
+	public void setUrlRoot(String urlRoot) {
+		this.urlRoot = urlRoot;
 	}
 }

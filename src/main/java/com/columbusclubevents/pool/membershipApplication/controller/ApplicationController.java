@@ -1,6 +1,7 @@
 package com.columbusclubevents.pool.membershipApplication.controller;
 
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -14,6 +15,10 @@ import javax.annotation.Resource;
 import javax.mail.MessagingException;
 import javax.validation.Valid;
 
+import com.columbusclubevents.pool.membershipApplication.model.MemberAdditionalPayment;
+import com.columbusclubevents.pool.membershipApplication.model.MemberNewPaymentRequest;
+import com.google.common.base.Splitter;
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,6 +51,7 @@ import com.columbusclubevents.pool.membershipApplication.model.MembershipCategor
 import com.columbusclubevents.pool.membershipApplication.model.MembershipOption;
 import com.columbusclubevents.pool.membershipApplication.model.MembershipOptionsList;
 
+import com.columbusclubevents.pool.membershipApplication.repository.MemberAdditionalPaymentRepository;
 import com.columbusclubevents.pool.membershipApplication.repository.MemberRepository;
 import com.columbusclubevents.pool.membershipApplication.repository.MembershipCategoryRepository;
 import com.columbusclubevents.pool.membershipApplication.repository.MembershipOptionRepsository;
@@ -79,7 +85,10 @@ public class ApplicationController {
 	 */
 	private static final String RESPONSE_SUCCESS = "SUCCESS";
 	private static final String RESPONSE_FAILURE = "FAIL";
-	
+
+
+	private static final Charset ENCODING = Charset.forName("UTF-8");
+
 	/**
 	 * The Spring-JPA repository for accessing the underlying datastore {@link MembershipCategory} values.  
 	 */
@@ -97,6 +106,14 @@ public class ApplicationController {
 	 */
 	@Autowired
 	private MemberRepository memberRepo;
+
+	/**
+	 * The Spring-JPA repository for accessing the underlying datastore {@link MemberAdditionalPayment} values.
+	 */
+	@Autowired
+	private MemberAdditionalPaymentRepository memberAdditionalPaymentRepo;
+
+
 
 	/**
 	 * The Wrapper for the REST API integration with the payment processor, Stripe..
@@ -326,6 +343,60 @@ public class ApplicationController {
 		log.debug("Received GET request on retrieve-member");
 		return "retrieve-member";
 	}
+
+	/**
+	 * Start the user's additional payment. Retrieve the member info from the base64-encoded string
+	 *
+	 * @param model The object Model.  Put the Member object in to pre-fill the appropriate fields on the JSPX (such as the member's address).
+	 * @param encodedUserInfo The Base-64 encoded user info
+	 * @return The base string to locate the underling JSPX file to use for the ViewResolver, either the payment page or no-match page.
+	 */
+	@RequestMapping(value="/start-additional-payment-encoded.htm", method=RequestMethod.GET)
+	public String startAdditionalPayment(Model model, @RequestParam("encodedUserInfo") String encodedUserInfo) {
+		log.debug("Received request to start payment for member ID '{}' with last name '{}'", encodedUserInfo);
+		String viewName = null;
+
+		String decodedStr = new String(Base64.decodeBase64(encodedUserInfo), ENCODING);
+		if(StringUtils.isEmpty(decodedStr)) {
+			viewName = "member-no-match";
+		}
+		else {
+			final Map<String, String> splitMap = Splitter.on(',').omitEmptyStrings().trimResults().withKeyValueSeparator(":").split(decodedStr);
+			String memberId = splitMap.get("memberId");
+			String lastName = splitMap.get("lastName");
+			String paymentId = splitMap.get("paymentId");
+			viewName = startAdditionalPayment(model, memberId, lastName, paymentId);
+		}
+		log.debug("Sending user to view {}", viewName);
+		return viewName;
+	}
+
+	/**
+	 * Start the user's additional payment.  Retrieve the user's data (to pre-fill form fields using the {@link Model} to fill in values on the JSPX) and
+	 * forward the user to the payment page.
+	 * This method is a copy of startPayment.  It should be refactored, but at this point it's not worth the effort.
+	 *
+	 * @param model The object Model.  Put the Member object in to pre-fill the appropriate fields on the JSPX (such as the member's address).
+	 * @param memberId The member ID.  Used to locate the correct member.
+	 * @param lastName The member last name.  Used to locate the correct member.
+	 * @param paymentId The ID of the user's additional payment
+	 * @return The base string to locate the underling JSPX file to use for the ViewResolver, either the payment page or no-match page.
+	 */
+	@RequestMapping(value="/start-additional-payment.htm", method=RequestMethod.GET, consumes="application/json", produces="application/json")
+	public String startAdditionalPayment(Model model, @RequestParam("id") String memberId, @RequestParam("lastName") String lastName, @RequestParam("paymentId") String paymentId) {
+		log.debug("Received request to start payment for member ID '{}' with last name '{}'", memberId, lastName);
+
+		Member member = retrieveMember(memberId, lastName);
+		if(member != null) {
+			//prep the new models
+			PaymentCreditCard paymentCC = PaymentCreditCard.fromMember(member);
+			model.addAttribute("paymentCC", paymentCC);
+			return "create-additional-payment";
+		}
+		else {
+			return "member-no-match";
+		}
+	}
 	
 	/**
 	 * Return a reference to the rates form jspx page.  For changing pool membership rates.
@@ -455,7 +526,7 @@ public class ApplicationController {
 			memberRepo.save(member);
 			//initiate a task to send the approval email
 			if(memberUpdateRequest.getMemberStatus().equals(MemberStatus.APPROVED)) {
-				mailSender.googleEnqueueMessage(memberUpdateRequest.getId());
+				mailSender.googleEnqueueMessage(memberUpdateRequest.getId(), "/sendAcceptance.htm");
 			}
 		}
 		if(invalidMemberId != null) {
@@ -466,6 +537,33 @@ public class ApplicationController {
 			//memberRepo.save(members);
 			return createSuccessResponse();
 		}
+	}
+
+	@RequestMapping(value="/manage/create-payment-requests.json",method=RequestMethod.POST, consumes="application/json", produces="application/json")
+	public @ResponseBody ValidationResponse createNewPaymentRequests(@RequestBody MemberNewPaymentRequest[] request, BindingResult result) {
+		log.debug("Received POST request on create-payment-requests.htm with filter input '{}'", Arrays.asList(request));
+
+		if(Arrays.asList(request).isEmpty()) {
+			return createSingleErrorResponse("", "You did not specify any members to update");
+		}
+
+		if(result.hasErrors()){
+			log.debug("Validation errors on input payment form");
+			return createErrorResponse(processErrors(result));
+		}
+
+		try {
+			for(MemberNewPaymentRequest newPaymentRequest : request) {
+				log.debug("Processing new payment request {}", newPaymentRequest);
+				MemberAdditionalPayment payment = createMemberIncrementalCost(newPaymentRequest.getId(), newPaymentRequest.getCost());
+				mailSender.googleEnqueueMessage(payment.getId(), "sendPaymentEmail.htm");
+			}
+		}
+		catch (Exception e) {
+			log.error("Error occurred while attempting to process new payment request", e);
+			return createSingleErrorResponse("", e.getMessage());
+		}
+		return createSuccessResponse();
 	}
 
 	@RequestMapping(value="/manage/{memberId}/member.json", method=RequestMethod.DELETE, produces="application/json")
@@ -497,7 +595,7 @@ public class ApplicationController {
 			log.warn("Attempted to send a member confirmation email to member ID '{}', but no valid member found", memberId);
 		}
 		try {
-	      mailSender.sendAcceptanceMessage(member.getEmail(), member.getId().toString(), member.getPaymentId(), member.getMemberType().equals("Knights of Columbus - EDW 2473 Council Member"));
+	      mailSender.sendAcceptanceMessage(member.getEmail(), member.getMemberType().equals("Knights of Columbus - EDW 2473 Council Member"));
 	      member.setMemberStatus(MemberStatus.COMPLETE);
 	      memberRepo.save(member);
 	      return "OK";
@@ -509,6 +607,42 @@ public class ApplicationController {
       	log.error("Unable to send acceptance confirmation for member '{}' due to IO exception", memberId, e);
       	throw new EmailSendException(e);
       }
+	}
+
+	@RequestMapping(value="/sendemail/{paymentId}/sendPaymentEmail.htm",method=RequestMethod.POST)
+	public @ResponseBody String sendPaymentRequestEmail(@PathVariable Long paymentId) throws EmailSendException {
+		log.debug("Received request to send payment email for ID {}", paymentId);
+
+		try {
+			MemberAdditionalPayment additionalPayment = memberAdditionalPaymentRepo.findOne(paymentId);
+			if(additionalPayment == null) {
+				log.warn("Attempting to send payment email for ID '{}', but provided ID is invalid", paymentId);
+			}
+			else {
+				Member member = memberRepo.findOne(additionalPayment.getMemberId());
+				if(member == null) {
+					log.warn("Attempted to send a member confirmation email to member ID '{}', but no valid member found", member);
+				}
+				else {
+					StringBuilder params = new StringBuilder()
+							.append("memberId").append(':').append(member.getId()).append(',')
+							.append("lastName").append(':').append(member.getLastName()).append(',')
+							.append("paymentId").append(':').append(paymentId);
+					log.debug("Encoding Parameters: {}", params);
+					String encodedParam = Base64.encodeBase64URLSafeString(params.toString().getBytes(ENCODING));
+					String url = "/start-additional-payment-encoded.htm?encodedUserInfo=" + encodedParam;
+					mailSender.sendPaymentEmail(member.getEmail(), url);
+				}
+			}
+			return "OK";
+		} catch (MessagingException e) {
+			log.error("Unable to send acceptance confirmation for payment '{}' due to messaging exception", paymentId, e);
+			throw new EmailSendException(e);
+
+		} catch (IOException e) {
+			log.error("Unable to send acceptance confirmation for payment '{}' due to IO exception", paymentId, e);
+			throw new EmailSendException(e);
+		}
 	}
 	
 	@ExceptionHandler(EmailSendException.class)
@@ -747,6 +881,49 @@ public class ApplicationController {
 			log.error("Passed-in member Id '{}' caused a NumberFormatException during memberId parsing. Presuming user entered invalid member Id and returning null", lastName, e);
 			return null;
 		}
+	}
+
+	@Transactional
+	private MemberAdditionalPayment createMemberIncrementalCost(Long memberId, Integer newCost) {
+		log.debug("Calculating incremental cost for member {} and new cost {}", memberId, newCost);
+
+		Member member = memberRepo.findOne(memberId);
+		if(member == null) {
+			throw new RuntimeException("Member specified by ID '" + memberId + "' is invalid");
+		}
+		Integer memberCost = member.getMemberCost();
+		Integer incrementalDifference = newCost - memberCost;
+
+		if(incrementalDifference <= 0) {
+			throw new RuntimeException(String.format("Incremental cost increase %1$s is a non-positive number, as new cost %2$s is less than or equal to original member paid amount %3$s",
+					incrementalDifference, newCost, memberCost));
+		}
+
+		MemberAdditionalPayment additionalPayment = new MemberAdditionalPayment();
+		additionalPayment.setMemberId(member.getId());
+		additionalPayment.setOriginalMemberCost(memberCost);
+		additionalPayment.setFinalMemberCost(newCost);
+		additionalPayment.setMemberPayment(incrementalDifference);
+
+		memberAdditionalPaymentRepo.save(additionalPayment);
+
+		member.setMemberStatus(MemberStatus.BALANCEDUE);
+		memberRepo.save(member);
+
+		return additionalPayment;
+	}
+
+	@Transactional
+	private void fetchAndUpdateAdditionalPayment(Long additionalPaymentId, String paymentId) {
+		log.debug("Updating member payment with ID '{}' with payment ID '{}'");
+		 MemberAdditionalPayment additionalPayment = memberAdditionalPaymentRepo.findOne(additionalPaymentId);
+
+		log.debug("Fetched member payment '{}'", additionalPayment);
+		additionalPayment.setPaymentId(paymentId);
+		additionalPayment.setMemberPaid(true);
+
+		log.debug("Persisting updated member Payment");
+		memberAdditionalPaymentRepo.saveAndFlush(additionalPayment);
 	}
 	
 	/**

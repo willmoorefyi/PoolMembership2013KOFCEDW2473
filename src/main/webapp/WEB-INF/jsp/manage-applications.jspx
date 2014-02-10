@@ -10,7 +10,7 @@
 
       <spring:url value="/manage/manage-applications.json" var="manageApplicationsFormUrl" />
       <spring:url value="/manage/get-default-member-status-values.json" var="memberStatusUrl"/>
-      
+
       <![CDATA[<script src="/js/sorttable.js"></script>]]>
       <![CDATA[<script src="/js/manageApplications.js"></script>]]>
       <![CDATA[
@@ -34,6 +34,8 @@
                    <p><button class="btn btn-danger" type="button" id="deleteButton">Delete Member</button></p>
                    <p><button class="btn btn-primary" type="button" id="approveButton">Approve Selected</button></p>
                    <p><button class="btn btn-primary" type="button" id="exportButton">Export All</button></p>
+                   <br/>
+                   <p><button class="btn btn-danger" type="button" id="createNewPaymentButton">Create New Payment</button></p>
                </div>
             </div>
             <div class="span10">
@@ -71,6 +73,12 @@
                     titleText="Delete" bodyElemId="deleteDlgBody"
                     closeAllowed="true" confirmElemId="deleteDlgOk" confirmText="Ok">
                      This will permanently delete the user. Are you sure you wish to continue?
+                 </tags:modal>
+                 <tags:modal modalId="costDlg" titleElemId="costDlgTitle"
+                    titleText="Create New Cost" bodyElemId="costDlgBody"
+                    closeAllowed="true" confirmElemId="costDlgOk" confirmText="Create">
+                     Create a new payment alert for this user, for the amount of the membership option selected (less whatever they have already paid):<br/>
+                     <select class="form-control span12" id="option-select"><jsp:text/></select>
                  </tags:modal>
 		         <tags:modal modalId="responseDlg" titleElemId="responseDlgTitle"
 		            bodyElemId="responseDlgBody" closeAllowed="true"

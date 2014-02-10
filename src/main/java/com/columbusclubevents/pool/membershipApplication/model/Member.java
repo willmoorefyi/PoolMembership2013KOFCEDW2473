@@ -15,6 +15,7 @@ import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import javax.persistence.PrePersist;
 import javax.persistence.PreUpdate;
+import javax.persistence.Transient;
 import javax.validation.Valid;
 import javax.validation.constraints.Pattern;
 
@@ -62,16 +63,12 @@ public class Member implements Serializable {
 	private String memberType;
 	private MemberStatus memberStatus;
 	private Integer memberCost;
-	//private String paymentOption;
 	private Boolean memberPaid;
 	private String paymentId;
 	
 	//not handling time zones, no idea what GAE is doing with time zones here.
 	private Date applicationTime;
-	
-	//google doesn't really handle unowned relationships in JPA well
-	//private MembershipOption membershipOption;
-	
+
 	public Long getId() {
 		return id;
 	}
@@ -201,17 +198,6 @@ public class Member implements Serializable {
 	public void setMemberType(String memberType) {
 		this.memberType = memberType;
 	}
-
-	/*
-	@NotEmpty(message="You must specify a payment option")
-	public String getPaymentOption() {
-		return paymentOption;
-	}
-
-	public void setPaymentOption(String paymentOption) {
-		this.paymentOption = paymentOption;
-	}
-	*/
 
 	public Boolean getMemberPaid() {
 		return memberPaid;
@@ -347,17 +333,4 @@ public class Member implements Serializable {
 	private String cleanse(String input) {
 		return StringUtils.defaultString(StringUtils.replace(input, ",", "_"));
 	}
-	
-	/*
-	@NotNull 
-	@Valid
-	@OneToOne(cascade = CascadeType.ALL)
-	public PersonName getName() {
-		return name;
-	}
-
-	public void setName(PersonName name) {
-		this.name = name;
-	}
-	*/
 }

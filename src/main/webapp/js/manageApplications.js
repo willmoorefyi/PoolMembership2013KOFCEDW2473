@@ -9,6 +9,9 @@ $(document).ready(function() {
     $('#deleteButton').click(clickDelete);
     $('#deleteDlgOk').click(deleteForm);
 
+    $('#createNewPaymentButton').click(clickNewPayment);
+    $('#costDlgOk').click(newPaymentForm);
+
 	$('#exportButton').click(clickExport);
 });
 
@@ -23,6 +26,17 @@ function getCurrentMemberStatusValues() {
             $('#status-select').append($('<option>').attr('value', status).append(status));
 		});
 		window.setTimeout(getDefaultApplicationStatus, 1);
+
+        $.getJSON('/manage/get-default-rate.json', function(data) {
+            $.each(data.memberCategories, function(i, memberCategory) {
+                //var tabDescription = memberCategory.tabDescription;
+                $.each(memberCategory.memberOptions, function(j, memberOpt) {
+                    var optLabel = memberOpt.optionLabel;
+                    var cost = memberOpt.cost;
+                    $('#option-select').append($('<option>').attr('value', cost).append(optLabel + ':' + cost));
+                });
+            });
+        });
 	});
 }
 
@@ -147,6 +161,10 @@ function clickDelete(event) {
     $('#deleteDlg').modal('show');
 }
 
+function clickNewPayment(event) {
+    $('#costDlg').modal('show');
+}
+
 function approveForm(event) {
 	disableModalForm('#confirmDlgOk');
 	
@@ -244,6 +262,38 @@ function deleteForm(event) {
             }
         });
     }
+}
+
+function newPaymentForm(event) {
+    disableModalForm('#costDlgOk');
+    var requestData = [ ];
+
+    var cost = $('#option-select').val();
+    $('tr.row_selected').each(function(index, elem) {
+        var memberUpdateRequest = { };
+        memberUpdateRequest.id = elem.id;
+        memberUpdateRequest.cost = cost;
+        requestData[index] = memberUpdateRequest;
+    });
+
+    $.ajax("/manage/create-payment-requests.json", {
+        data: JSON.stringify(requestData),
+        contentType: 'application/json; charset=UTF-8',
+        dataType: 'json',
+        type:'POST',
+        success: function(response) {
+            if (response.status == 'FAIL') {
+                processServerErrors(response.errorMessageList, '#costDlg', '#costDlgOk');
+            }
+            else {
+                showSuccess("Submission Successful", "Your changes were successfully committted. The selection will now refresh.", '#costDlg','#costDlgOk');
+            }
+
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+            showError('Server Error', 'There were errors with your submission. Server Responded with ' + textStatus + ': ' + errorThrown, '#costDlg', '#costDlgOk');
+        }
+    });
 }
 
 /**

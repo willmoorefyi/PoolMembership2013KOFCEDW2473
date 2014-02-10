@@ -10,6 +10,7 @@
       <class>com.columbusclubevents.pool.membershipApplication.model.PersonName</class>
       <class>com.columbusclubevents.pool.membershipApplication.model.Dependent</class>
       <class>com.columbusclubevents.pool.membershipApplication.model.Member</class>
+      <class>com.columbusclubevents.pool.membershipApplication.model.MemberAdditionalPayment</class>
       <properties>
          <property name="datanucleus.NontransactionalRead" value="true" />
          <property name="datanucleus.NontransactionalWrite" value="true" />
