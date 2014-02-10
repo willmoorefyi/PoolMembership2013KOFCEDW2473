@@ -33,6 +33,8 @@ import org.slf4j.LoggerFactory;
  */
 @Entity
 public class Member implements Serializable {
+
+	@Transient
 	Logger log = LoggerFactory.getLogger(Member.class);
 	private static final long serialVersionUID = 6864054721613306242L;
 

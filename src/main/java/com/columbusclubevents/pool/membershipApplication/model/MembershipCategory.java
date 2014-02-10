@@ -23,6 +23,8 @@ import org.slf4j.LoggerFactory;
 
 @Entity
 public class MembershipCategory implements Serializable {
+
+	@Transient
 	Logger log = LoggerFactory.getLogger(MembershipCategory.class);
 	private static final long serialVersionUID = -8630292711855527925L;
 

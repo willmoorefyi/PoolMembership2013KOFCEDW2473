@@ -28,7 +28,7 @@ import com.google.appengine.api.taskqueue.QueueFactory;
 import com.google.appengine.api.taskqueue.TaskOptions;
 import com.google.appengine.api.taskqueue.TaskOptions.Method;
 
-@Service
+@Service("mailSender")
 public class MailSender {
 	private static Logger log = LoggerFactory.getLogger(MailSender.class);
 
