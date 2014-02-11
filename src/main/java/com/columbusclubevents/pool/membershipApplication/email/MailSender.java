@@ -6,6 +6,8 @@ import java.util.Properties;
 
 import javax.activation.DataHandler;
 import javax.activation.DataSource;
+import javax.activation.FileDataSource;
+import javax.activation.URLDataSource;
 import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.Multipart;
@@ -32,6 +34,7 @@ import com.google.appengine.api.taskqueue.TaskOptions.Method;
 public class MailSender {
 	private static Logger log = LoggerFactory.getLogger(MailSender.class);
 
+	// Variables for confirmation email
 	private Resource memberConfirmationFileText;
 	private Resource nonmemberConfirmationFileText;
 	private Resource memberConfirmationFileHtm;
@@ -40,8 +43,13 @@ public class MailSender {
 	private Resource rulesAttachment;
 	private String from;
 	private String welcomeSubject;
+
+	// Variables for additional payment email
 	private String paymentSubject;
 	private String urlRoot;
+	private Resource memberAdditionalPaymentEmailText;
+	private Resource memberAdditionalPaymentEmailHtm;
+	private Resource memberAdditionalPaymentEmailLogo;
 
 	public void googleEnqueueMessage(Long id, String endpoint) {
 		log.debug("Enqueueing task for ID '{}'", id);
@@ -62,7 +70,7 @@ public class MailSender {
 		
 		msg.setFrom(new InternetAddress(from));
 		msg.addRecipient(Message.RecipientType.TO, new InternetAddress(to));
-		msg.setSubject(welcomeSubject); //String.format(welcomeSubject, memberId, StringUtils.isEmpty(paymentId) ? "N/A" : paymentId)
+		msg.setSubject(welcomeSubject);
 		
         MimeBodyPart htmlPart = new MimeBodyPart();
 		MimeBodyPart textPart = new MimeBodyPart();
@@ -112,21 +120,31 @@ public class MailSender {
 
 		msg.setFrom(new InternetAddress(from));
 		msg.addRecipient(Message.RecipientType.TO, new InternetAddress(to));
-		msg.setSubject(welcomeSubject); //String.format(welcomeSubject, memberId, StringUtils.isEmpty(paymentId) ? "N/A" : paymentId)
+		msg.setSubject(paymentSubject);
 
 		MimeBodyPart htmlPart = new MimeBodyPart();
 		MimeBodyPart textPart = new MimeBodyPart();
+		MimeBodyPart logoPart = new MimeBodyPart();
 		StringWriter htmlWriter = new StringWriter();
 		StringWriter textWriter = new StringWriter();
 
-		// TODO HERE!!!
-		IOUtils.copy(nonmemberConfirmationFileHtm.getInputStream(), htmlWriter, "UTF-8");
-		IOUtils.copy(nonmemberConfirmationFileText.getInputStream(), textWriter, "UTF-8");
+		IOUtils.copy(memberAdditionalPaymentEmailHtm.getInputStream(), htmlWriter, "UTF-8");
+		IOUtils.copy(memberAdditionalPaymentEmailText.getInputStream(), textWriter, "UTF-8");
 
-		htmlPart.setContent(htmlWriter.toString(), "text/html; charset=utf-8");
-		textPart.setText(textWriter.toString(), "utf-8");
+		DataSource dataSource = new URLDataSource(memberAdditionalPaymentEmailLogo.getURL());
+		logoPart.setDataHandler(new DataHandler(dataSource));
+		logoPart.setFileName(memberAdditionalPaymentEmailLogo.getFilename());
+
+		//neither of these commands do anything because appengine is garbage that you shouldn't ever use
+		logoPart.setContentID("<columbusclubarlington_logo>");
+		logoPart.setHeader("Content-ID", "<columbusclubarlington_logo>");
+		logoPart.setDisposition(MimeBodyPart.INLINE);
+
+		htmlPart.setContent(htmlWriter.toString().replaceAll("\\{url\\}", fullUrl), "text/html; charset=utf-8");
+		textPart.setText(textWriter.toString().replaceAll("\\{url\\}", fullUrl), "utf-8");
 		mp.addBodyPart(textPart);
 		mp.addBodyPart(htmlPart);
+		mp.addBodyPart(logoPart);
 
 		msg.setContent(mp);
 		log.debug("sending message: {}", msg.getContent());
@@ -213,5 +231,29 @@ public class MailSender {
 
 	public void setUrlRoot(String urlRoot) {
 		this.urlRoot = urlRoot;
+	}
+
+	public Resource getMemberAdditionalPaymentEmailText() {
+		return memberAdditionalPaymentEmailText;
+	}
+
+	public void setMemberAdditionalPaymentEmailText(Resource memberAdditionalPaymentEmailText) {
+		this.memberAdditionalPaymentEmailText = memberAdditionalPaymentEmailText;
+	}
+
+	public Resource getMemberAdditionalPaymentEmailHtm() {
+		return memberAdditionalPaymentEmailHtm;
+	}
+
+	public void setMemberAdditionalPaymentEmailHtm(Resource memberAdditionalPaymentEmailHtm) {
+		this.memberAdditionalPaymentEmailHtm = memberAdditionalPaymentEmailHtm;
+	}
+
+	public Resource getMemberAdditionalPaymentEmailLogo() {
+		return memberAdditionalPaymentEmailLogo;
+	}
+
+	public void setMemberAdditionalPaymentEmailLogo(Resource memberAdditionalPaymentEmailLogo) {
+		this.memberAdditionalPaymentEmailLogo = memberAdditionalPaymentEmailLogo;
 	}
 }

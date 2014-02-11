@@ -17,6 +17,7 @@ import javax.validation.Valid;
 
 import com.columbusclubevents.pool.membershipApplication.model.MemberAdditionalPayment;
 import com.columbusclubevents.pool.membershipApplication.model.MemberNewPaymentRequest;
+import com.columbusclubevents.pool.membershipApplication.stripe.AdditionalPaymentCreditCard;
 import com.google.common.base.Splitter;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.StringUtils;
@@ -387,15 +388,39 @@ public class ApplicationController {
 		log.debug("Received request to start payment for member ID '{}' with last name '{}'", memberId, lastName);
 
 		Member member = retrieveMember(memberId, lastName);
-		if(member != null) {
+		MemberAdditionalPayment additionalPayment = memberAdditionalPaymentRepo.findOne(Long.parseLong(paymentId));
+		if(member != null && additionalPayment != null && member.getId() == additionalPayment.getMemberId()) {
 			//prep the new models
-			PaymentCreditCard paymentCC = PaymentCreditCard.fromMember(member);
+			AdditionalPaymentCreditCard paymentCC = AdditionalPaymentCreditCard.fromPayment(additionalPayment, member);
+			paymentCC.setPaymentId(paymentId);
 			model.addAttribute("paymentCC", paymentCC);
 			return "create-additional-payment";
 		}
 		else {
 			return "member-no-match";
 		}
+	}
+
+	@RequestMapping(value="/submit-additional-payment-cc.json", method=RequestMethod.POST, consumes="application/json", produces="application/json")
+	public @ResponseBody ValidationResponse payAdditionalCC(@RequestBody @Valid AdditionalPaymentCreditCard paymentCC, BindingResult result) {
+		log.debug("Received payment request for additional payment: {}", paymentCC);
+		//handle any binding errors
+		if(result.hasErrors()){
+			log.debug("Validation errors on input payment form");
+			return createErrorResponse(processErrors(result));
+		}
+
+		String memberId = paymentCC.getPaymentCreditCard().getMemberId();
+		String lastName = paymentCC.getPaymentCreditCard().getLastName();
+		Member member = retrieveMember(memberId, lastName);
+
+		//make sure the member is valid.
+		if(member == null) {
+			log.error("Invalid model passed into payCC: '{}'", paymentCC);
+			return createSingleErrorResponse("memberId", "No matching member can be found for the combination of member ID and last name provided.");
+		}
+
+		return null;
 	}
 	
 	/**

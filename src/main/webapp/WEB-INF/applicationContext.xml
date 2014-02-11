@@ -29,6 +29,7 @@
 
     <bean id="mailSender" class="com.columbusclubevents.pool.membershipApplication.email.MailSender">
         <property name="from" value="operations@columbusclubevents.com"/>
+        <!--<property name="from" value="knightsofarlington.office@gmail.com"/>-->
         <property name="welcomeSubject" value="Welcome to the Knights of Columbus Pool for the 2014 Season!"/>
         <property name="memberConfirmationFileText" value="classpath:email/Email Confirmation Members.txt"/>
         <property name="nonmemberConfirmationFileText" value="classpath:email/Email Confirmation Non-Members.txt"/>
@@ -37,8 +38,11 @@
         <property name="parkingAttachment" value="classpath:email/Columbus Club Parking Map.pdf"/>
         <property name="rulesAttachment" value="classpath:email/Pool Rules 2014.pdf"/>
         <!-- properties for new payment email -->
-        <property name="paymentSubject" value="Something"/>
-        <property name="urlRoot" value="http://localhost:8080"/>
+        <property name="paymentSubject" value="Knights of Columbus Pool Additional Payment Required"/>
+        <property name="urlRoot" value="https://kofcedw2473-pool.appspot.com"/>
+        <property name="memberAdditionalPaymentEmailText" value="classpath:email/Email Additional Payment Necessary.txt"/>
+        <property name="memberAdditionalPaymentEmailHtm" value="classpath:email/Email Additional Payment Necessary.htm"/>
+        <property name="memberAdditionalPaymentEmailLogo" value="classpath:email/image002.jpg"/>
     </bean>
 
     <!-- Activates various annotations to be detected in bean classes -->
