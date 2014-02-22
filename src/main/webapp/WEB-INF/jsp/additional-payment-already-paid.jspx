@@ -1,0 +1,43 @@
+<html xmlns:c="http://java.sun.com/jsp/jstl/core"
+	  xmlns:spring="http://www.springframework.org/tags"
+	  xmlns:jsp="http://java.sun.com/JSP/Page"
+	  xmlns:form="http://www.springframework.org/tags/form"
+	  xmlns:tags="urn:jsptagdir:/WEB-INF/tags" >
+
+<jsp:output doctype-root-element="HTML" doctype-system="about:legacy-compat" />
+<jsp:directive.page contentType="text/html;charset=UTF-8" />
+<head>
+	<tags:header headerTitle="Application Complete"></tags:header>
+	<spring:url value="/application-complete.htm" var="formUrl" />
+
+	<![CDATA[<script src="/js/paymentComplete.js"></script>]]>
+	<![CDATA[
+	<!-- HTML5 shim, for IE6-8 support of HTML5 elements, outside the taglib due to CDATA support -->
+	<!--[if lt IE 9]>
+	<script src="/js/html5shiv.js"></script>
+	<![endif]-->
+	]]>
+</head>
+<body class="body-blue">
+<div class="page-wrapper">
+	<jsp:include page="include/header-kofc-pool.jspx"/>
+	<div class="container">
+		<div class="page-header">
+			<h1>Payment Already Processed!<br/><small>2014 Season, Knights of Columbus, Arlington Pool</small></h1>
+		</div>
+		<div class="row">
+			<div class="span12">Our records indicate you've already paid your additional payment for the 2014 pool season.  We appreciate your business and look forward to seeing you at the pool this summer!</div>
+		</div>
+		<div class="form-bottom-spacer">&#160;</div>
+		<div class="row">
+			<div class="span12"><p>To return to the application summary page, click the button below</p></div>
+		</div>
+		<form:form id="submitForm" modelAttribute="member" class="" action="${formUrl}">
+			<form:hidden path="id" />
+			<form:hidden path="lastName" />
+			<button class="span2 btn btn-primary" type="submit" id="submitButton">Return</button>
+		</form:form>
+	</div>
+</div>
+</body>
+</html>

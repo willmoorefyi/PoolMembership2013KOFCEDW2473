@@ -9,8 +9,8 @@
    <head>  
       <tags:header headerTitle="Pay Dues"></tags:header>
       <spring:url value="/submit-payment-cc.json" var="formCCUrl" />
-      <spring:url value="/submit-payment-paypal.json" var="formPayPalUrl" />
-      
+
+      <![CDATA[<script src="/js/payment-shared.js"></script>]]>
       <![CDATA[<script src="/js/createPayment.js"></script>]]>
       <![CDATA[
       <!-- HTML5 shim, for IE6-8 support of HTML5 elements, outside the taglib due to CDATA support -->

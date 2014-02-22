@@ -8,10 +8,10 @@
 <jsp:directive.page contentType="text/html;charset=UTF-8" />
 <head>
     <tags:header headerTitle="Pay Dues"></tags:header>
-    <spring:url value="/submit-payment-cc.json" var="formCCUrl" />
-    <spring:url value="/submit-payment-paypal.json" var="formPayPalUrl" />
+    <spring:url value="/submit-additional-payment-cc.json" var="formCCUrl" />
 
-    <![CDATA[<script src="/js/createPayment.js"></script>]]>
+    <![CDATA[<script src="/js/payment-shared.js"></script>]]>
+    <![CDATA[<script src="/js/createAdditionalPayment.js"></script>]]>
     <![CDATA[
       <!-- HTML5 shim, for IE6-8 support of HTML5 elements, outside the taglib due to CDATA support -->
       <!--[if lt IE 9]>
@@ -20,10 +20,160 @@
       ]]>
 </head>
 <body class="body-blue">
-<div class="page-wrapper">
-    <jsp:include page="include/header-kofc-pool.jspx"/>
-    <div class="container">
+    <div class="page-wrapper">
+        <jsp:include page="include/header-kofc-pool.jspx"/>
+        <div class="container">
+            <div class="page-header">
+                <h1>Select Your Payment Option Below</h1>
+            </div>
+            <div class="row">
+                <div class="span11">
+                    <p class="">Due to a system error that has occurred with our payment processor for your
+                        2014 Pool Membership application, our payment processing provider incorrectly charged the
+                        2013 membership rates instead of the adjusted 2014 rates.  This resulted in a charge for
+                        an amount that is lower than the full fee required for membership for the summer 2014
+                        season.  As a result, we need to collect the remaining balance due for the 2014 pool
+                        membership fees prior to approving your application.</p>
+                    <p class=""><small>We appreciate your understanding</small></p>
+                </div>
+            </div>
+            <div class="accordion" id="accordion-payment">
+                <div class="accordion-group">
+                    <div class="accordion-heading">
+                        <h3><a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-payment" href="#payment-cc">Pay with Credit Card</a></h3>
+                    </div>
+                    <div id="payment-cc" class="accordion-body collapse in">
+                        <div class="accordion-inner">
+                            <form:form modelAttribute="additionalPaymentCC" class="application-form form-horizontal" action="${formCCUrl}">
+                                <fieldset>
+                                    <legend>Request Information</legend>
+                                    <div class="controls-row" id="name">
+                                        <div class="control-group span5">
+                                            <label class="control-label" for="paymentCreditCard.lastName">Last Name:</label>
+                                            <div class="controls"><form:input path="paymentCreditCard.lastName" type="text" class="inputFormElem" disabled="${'true'}"></form:input></div>
+                                        </div>
+                                        <div class="control-group span5">
+                                            <label class="control-label" for="paymentCreditCard.memberId">Application ID:</label>
+                                            <div class="controls"><form:input path="paymentCreditCard.memberId" type="text" class="inputFormElem" disabled="${'true'}"></form:input></div>
+                                        </div>
+                                    </div>
+                                    <div class="controls-row" id="totals">
+                                        <div class="control-group span5">
+                                            <label class="control-label" for="originalPaymentAmount">Already Paid:</label>
+                                            <div class="controls"><form:input path="originalPaymentAmount" type="text" class="inputFormElem currency" disabled="${'true'}"></form:input></div>
+                                        </div>
+                                        <div class="control-group span5">
+                                            <label class="control-label" for="finalMemberAmount">2014 Total Due:</label>
+                                            <div class="controls"><form:input path="finalMemberAmount" type="text" class="inputFormElem currency" disabled="${'true'}"></form:input></div>
+                                        </div>
+                                    </div>
+                                </fieldset>
+                                <fieldset>
+                                    <legend>Balance Due Today</legend>
+                                    <div class="controls-row" id="totals">
+                                        <div class="control-group span5">
+                                            <label class="control-label" for="amount">Will be Charged:</label>
+                                            <div class="controls"><form:input path="paymentCreditCard.amount" type="text" class="inputFormElem currency" disabled="${'true'}"></form:input></div>
+                                        </div>
+                                    </div>
+                                </fieldset>
+                                <fieldset>
+                                    <legend>Billing Address:</legend>
+                                    <div class="controls-row" id="address">
+                                        <div class="controls-row">
+                                            <div class="control-group span7"><form:input path="paymentCreditCard.addressLine1" type="text" class="inputFormElem" title="Address Line 1" placeholder="Address Line 1"></form:input></div>
+                                        </div>
+                                        <div class="controls-row">
+                                            <div class="control-group span7"><form:input path="paymentCreditCard.addressLine2" type="text" class="inputFormElem" title="Address Line 2" placeholder="Address Line 2"></form:input></div>
+                                        </div>
+                                        <div class="controls-row">
+                                            <div class="span12 row-fluid">
+                                                <div class="controls-row" id="citystatezip">
+                                                    <div class="control-group span3"><form:input path="paymentCreditCard.addressCity" type="text" class="inputFormElem" title="City" placeholder="City"></form:input></div>
+                                                    <div class="control-group span2"><tags:stateSelector inputId="paymentCreditCard.addressState" cssClass="inputFormElem" helpText="State" defaultValue="${additionalPaymentCC.paymentCreditCard.addressState}"></tags:stateSelector></div>
+                                                    <div class="control-group span2"><form:input path="paymentCreditCard.addressPostalCode" type="text" class="inputFormElem" title="Zip" placeholder="Zip"></form:input></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="controls-row">
+                                            <div class="control-group span3"><form:input path="paymentCreditCard.addressPhone" type="text" class="inputFormElem" title="Billing Phone Number" placeholder="Billing Phone Number"></form:input></div>
+                                        </div>
+                                    </div>
+                                </fieldset>
+                                <fieldset>
+                                    <legend>Payment Information:</legend>
+                                    <div class="controls-row" id="payment">
+                                        <div class="control-group span3">
+                                            <form:select path="paymentCreditCard.ccType" title="Credit Card Type" placeholder="Credit Card Type">
+                                                <form:option label="Visa" value="visa"></form:option>
+                                                <form:option label="Mastercard" value="mastercard"></form:option>
+                                                <form:option label="American Express" value="amex"></form:option>
+                                                <form:option label="Discover" value="discover"></form:option>
+                                            </form:select>
+                                        </div>
+                                    </div>
+                                    <div class="controls-row">
+                                        <div class="control-group span4"><form:input path="paymentCreditCard.fullName" type="text" class="inputFormElem" title="Cardholder Full Name (as it appears on the card))" placeholder="Cardholder Full Name "></form:input></div>
+                                    </div>
+                                    <div class="controls-row">
+                                        <div class="control-group span3"><form:input path="paymentCreditCard.ccNumber" type="text" class="inputFormElem" title="Credit Card Number" placeholder="Credit Card Number"></form:input></div>
+                                        <div class="control-group span3">
+                                            <img border="0" title="Visa" alt="Visa" src="/img/logo_ccVisa.gif"></img>
+                                            <img border="0" title="Mastercard" alt="Mastercard " src="/img/logo_ccMC.gif"></img>
+                                            <img border="0" title="American Express" alt="American Express" src="/img/logo_ccAmex.gif"></img>
+                                            <img border="0" title="Discover" alt="Discover" src="/img/logo_ccDiscover.gif"></img>
+                                        </div>
+                                    </div>
+                                    <div class="controls-row">
+                                        <div class="control-group span1">
+                                            <form:select path="paymentCreditCard.ccExpireMonth" class="inputFormElem" title="Credit Card Number" placeholder="Credit Card Number">
+                                                <form:option value="01" label="01"></form:option><form:option value="02" label="02"></form:option>
+                                                <form:option value="03" label="03"></form:option><form:option value="04" label="04"></form:option>
+                                                <form:option value="05" label="05"></form:option><form:option value="06" label="06"></form:option>
+                                                <form:option value="07" label="07"></form:option><form:option value="08" label="08"></form:option>
+                                                <form:option value="09" label="09"></form:option><form:option value="10" label="10"></form:option>
+                                                <form:option value="11" label="11"></form:option><form:option value="12" label="12"></form:option>
+                                            </form:select>
+                                        </div>
+                                        <div class="control-group span2">
+                                            <form:select path="paymentCreditCard.ccExpireYear" class="inputFormElem" title="Credit Card Year" placeholder="Credit Card Year">
+                                                <form:option value="2014" label="2014"></form:option>
+                                                <form:option value="2015" label="2015"></form:option><form:option value="2016" label="2016"></form:option>
+                                                <form:option value="2017" label="2017"></form:option><form:option value="2018" label="2018"></form:option>
+                                                <form:option value="2019" label="2019"></form:option><form:option value="2020" label="2020"></form:option>
+                                                <form:option value="2021" label="2021"></form:option><form:option value="2022" label="2022"></form:option>
+                                                <form:option value="2023" label="2023"></form:option><form:option value="2024" label="2024"></form:option>
+                                                <form:option value="2025" label="2025"></form:option><form:option value="2026" label="2026"></form:option>
+                                                <form:option value="2027" label="2027"></form:option><form:option value="2028" label="2028"></form:option>
+                                                <form:option value="2029" label="2029"></form:option><form:option value="2030" label="2030"></form:option>
+                                                <form:option value="2031" label="2031"></form:option><form:option value="2032" label="2032"></form:option>
+                                                <form:option value="2033" label="2033"></form:option>
+                                            </form:select>
+                                        </div>
+                                    </div>
+                                    <div class="controls-row">
+                                        <div class="control-group span1"><form:input path="paymentCreditCard.ccCvv2" type="text" class="inputFormElem" title="Card Security Code" placeholder="CVV"></form:input></div>
+                                        <div class="control-group span1"><img border="0" align="top" alt="Help finding your Card Verification Number" src="/img/mini_cvv2.gif"></img></div>
+                                        <div class="control-group span2"><a href="http://en.wikipedia.org/wiki/Card_security_code" style="font-size: 0.8em;" target="_blank">What is my Card Security Code?</a></div>
+                                    </div>
+									<form:input path="paymentId" type="hidden" disabled="disabled"></form:input>
+                                </fieldset>
+                                <div class="row-fluid">
+                                    <div class="span2"><button class="btn btn-primary " type="button" id="submitCCButton">Submit</button></div>
+                                </div>
+                            </form:form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <tags:modal modalId="confirmDlg" titleElemId="confirmDlgTitle"
+                        titleText="Confirmation" bodyElemId="confirmDlgBody"
+                        closeAllowed="true" confirmElemId="confirmDlgOk" confirmText="Ok">This will submit your your payment to Stripe for processing.
+                Your credit card will be debited immediately. Are you sure you wish to do this?</tags:modal>
+            <tags:modal modalId="responseDlg" titleElemId="responseDlgTitle"
+                        bodyElemId="responseDlgBody" closeAllowed="true"
+                        confirmElemId="responseDlgOk" confirmText="Ok">No Text</tags:modal>
+        </div>
     </div>
-</div>
 </body>
 </html>

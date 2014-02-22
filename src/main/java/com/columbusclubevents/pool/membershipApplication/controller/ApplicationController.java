@@ -383,44 +383,85 @@ public class ApplicationController {
 	 * @param paymentId The ID of the user's additional payment
 	 * @return The base string to locate the underling JSPX file to use for the ViewResolver, either the payment page or no-match page.
 	 */
-	@RequestMapping(value="/start-additional-payment.htm", method=RequestMethod.GET, consumes="application/json", produces="application/json")
+	@RequestMapping(value="/start-additional-payment.htm", method=RequestMethod.GET)
 	public String startAdditionalPayment(Model model, @RequestParam("id") String memberId, @RequestParam("lastName") String lastName, @RequestParam("paymentId") String paymentId) {
 		log.debug("Received request to start payment for member ID '{}' with last name '{}'", memberId, lastName);
 
 		Member member = retrieveMember(memberId, lastName);
 		MemberAdditionalPayment additionalPayment = memberAdditionalPaymentRepo.findOne(Long.parseLong(paymentId));
 		if(member != null && additionalPayment != null && member.getId() == additionalPayment.getMemberId()) {
-			//prep the new models
-			AdditionalPaymentCreditCard paymentCC = AdditionalPaymentCreditCard.fromPayment(additionalPayment, member);
-			paymentCC.setPaymentId(paymentId);
-			model.addAttribute("paymentCC", paymentCC);
-			return "create-additional-payment";
+			if(additionalPayment.getMemberPaid()) {
+				log.debug("Received request for additional payment, but member has already paid with payment ID {}", additionalPayment);
+				model.addAttribute("member", member);
+				return "additional-payment-already-paid";
+			}
+			else {
+				//prep the new models
+				AdditionalPaymentCreditCard additionalPaymentCC = AdditionalPaymentCreditCard.fromPayment(additionalPayment, member);
+				additionalPaymentCC.setPaymentId(paymentId);
+				model.addAttribute("additionalPaymentCC", additionalPaymentCC);
+				log.debug("Added payment CC to model and forwarding to view: {}", additionalPaymentCC);
+				return "create-additional-payment";
+			}
 		}
 		else {
 			return "member-no-match";
 		}
 	}
 
+	@Transactional
 	@RequestMapping(value="/submit-additional-payment-cc.json", method=RequestMethod.POST, consumes="application/json", produces="application/json")
-	public @ResponseBody ValidationResponse payAdditionalCC(@RequestBody @Valid AdditionalPaymentCreditCard paymentCC, BindingResult result) {
-		log.debug("Received payment request for additional payment: {}", paymentCC);
+	public @ResponseBody ValidationResponse payAdditionalCC(@RequestBody @Valid AdditionalPaymentCreditCard additionalPaymentCC, BindingResult result) {
+		log.debug("Received payment request for additional payment: {}", additionalPaymentCC);
 		//handle any binding errors
 		if(result.hasErrors()){
 			log.debug("Validation errors on input payment form");
 			return createErrorResponse(processErrors(result));
 		}
 
-		String memberId = paymentCC.getPaymentCreditCard().getMemberId();
-		String lastName = paymentCC.getPaymentCreditCard().getLastName();
+		String memberId = additionalPaymentCC.getPaymentCreditCard().getMemberId();
+		String lastName = additionalPaymentCC.getPaymentCreditCard().getLastName();
 		Member member = retrieveMember(memberId, lastName);
 
 		//make sure the member is valid.
 		if(member == null) {
-			log.error("Invalid model passed into payCC: '{}'", paymentCC);
+			log.error("Invalid model passed into payCC: '{}'", additionalPaymentCC);
 			return createSingleErrorResponse("memberId", "No matching member can be found for the combination of member ID and last name provided.");
 		}
 
-		return null;
+		PaymentCreditCard paymentCC = additionalPaymentCC.getPaymentCreditCard();
+
+		log.debug("Setting additional properties on input CC request");
+		MemberAdditionalPayment paymentDetails = memberAdditionalPaymentRepo.findOne(Long.parseLong(additionalPaymentCC.getPaymentId()));
+		log.debug("Setting payment amount to value: {}", paymentDetails.getMemberPayment());
+		paymentCC.setAmount(paymentDetails.getMemberPayment().toString());
+
+		try {
+			PaymentCreditCardResponse response = stripeRestWrapper.postCCPayment(paymentCC);
+			if(response.getSuccess()) {
+				member.setMemberPaid(true);
+				member.setMemberStatus(MemberStatus.PAID);
+				log.debug("Persisting member info {}", member);
+				memberRepo.save(member);
+				log.debug("Member successfully persisted");
+				fetchAndUpdateAdditionalPayment(Long.parseLong(additionalPaymentCC.getPaymentId()), response.getSuccessId());
+				log.debug("Persisting Payment info {}", paymentDetails);
+				ValidationResponse res = createSuccessResponse();
+				res.setUrl("/additional-payment-complete.htm");
+				res.setSuccessIdentifier(member.getId().toString());
+				res.setLastName(member.getLastName());
+				return res;
+			}
+			else {
+				String field = response.getParam() == null ? "id" : response.getParam();
+				String message = response.getMessage();
+				return createSingleErrorResponse(field, message);
+			}
+		}
+		catch (Exception e) {
+			log.error("Exception occurred parsing credit card request", e);
+			return createSingleErrorResponse("id", "Error occurred processing your credit card information. Please try again later.");
+		}
 	}
 	
 	/**
@@ -656,6 +697,7 @@ public class ApplicationController {
 					log.debug("Encoding Parameters: {}", params);
 					String encodedParam = Base64.encodeBase64URLSafeString(params.toString().getBytes(ENCODING));
 					String url = "/start-additional-payment-encoded.htm?encodedUserInfo=" + encodedParam;
+					log.debug("Generated encoded URL: {}", url);
 					mailSender.sendPaymentEmail(member.getEmail(), url);
 				}
 			}
@@ -933,6 +975,8 @@ public class ApplicationController {
 		memberAdditionalPaymentRepo.save(additionalPayment);
 
 		member.setMemberStatus(MemberStatus.BALANCEDUE);
+		member.setMemberPaid(false);
+
 		memberRepo.save(member);
 
 		return additionalPayment;
@@ -940,7 +984,7 @@ public class ApplicationController {
 
 	@Transactional
 	private void fetchAndUpdateAdditionalPayment(Long additionalPaymentId, String paymentId) {
-		log.debug("Updating member payment with ID '{}' with payment ID '{}'");
+		log.debug("Updating member payment with ID '{}' with payment ID '{}'", additionalPaymentId, paymentId);
 		 MemberAdditionalPayment additionalPayment = memberAdditionalPaymentRepo.findOne(additionalPaymentId);
 
 		log.debug("Fetched member payment '{}'", additionalPayment);

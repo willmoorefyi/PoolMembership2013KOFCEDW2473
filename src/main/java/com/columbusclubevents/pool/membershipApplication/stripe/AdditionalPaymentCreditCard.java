@@ -16,8 +16,12 @@ public class AdditionalPaymentCreditCard {
 		AdditionalPaymentCreditCard additionalPaymentCreditCard = new AdditionalPaymentCreditCard();
 		additionalPaymentCreditCard.paymentCreditCard = PaymentCreditCard.fromMember(member);
 		//clear out the amount
+		additionalPaymentCreditCard.paymentCreditCard.setAmount("");
+
+		additionalPaymentCreditCard.paymentId = additionalPayment.getId().toString();
+		additionalPaymentCreditCard.originalPaymentAmount = additionalPayment.getOriginalMemberCost().toString();
+		additionalPaymentCreditCard.finalMemberAmount = additionalPayment.getFinalMemberCost().toString();
 		additionalPaymentCreditCard.paymentCreditCard.setAmount(additionalPayment.getMemberPayment().toString());
-		additionalPayment.setPaymentId(additionalPayment.getId().toString());
 		return additionalPaymentCreditCard;
 	}
 
