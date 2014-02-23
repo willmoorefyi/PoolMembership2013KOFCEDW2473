@@ -335,6 +335,21 @@ public class ApplicationController {
 		}
 	}
 
+	@RequestMapping(value="/additional-payment-complete.htm")
+	public String sendToAdditionalPaymentComplete(Model model, @RequestParam("id") String memberId, @RequestParam("lastName") String lastName) {
+		Member member = retrieveMember(memberId, lastName);
+		log.debug("Executed search and member returned: {}", member);
+
+		if(member != null) {
+			model.addAttribute("member", member);
+			return "additional-payment-complete";
+		}
+		else {
+			log.warn("Received payment complete, but user ID couldn't be found.  This should never happen!");
+			return "member-no-match";
+		}
+	}
+
 	/**
 	 * Return a reference to the get member jspx page.  For looking up a successfully committed application.
 	 * @return The base string to locate the underling JSPX file to use for the ViewResolver
@@ -354,10 +369,11 @@ public class ApplicationController {
 	 */
 	@RequestMapping(value="/start-additional-payment-encoded.htm", method=RequestMethod.GET)
 	public String startAdditionalPayment(Model model, @RequestParam("encodedUserInfo") String encodedUserInfo) {
-		log.debug("Received request to start payment for member ID '{}' with last name '{}'", encodedUserInfo);
+		log.debug("Received request to start payment for encoded member info '{}'", encodedUserInfo);
 		String viewName = null;
 
 		String decodedStr = new String(Base64.decodeBase64(encodedUserInfo), ENCODING);
+		log.debug("Decoded string read as : {}", decodedStr);
 		if(StringUtils.isEmpty(decodedStr)) {
 			viewName = "member-no-match";
 		}
@@ -385,12 +401,13 @@ public class ApplicationController {
 	 */
 	@RequestMapping(value="/start-additional-payment.htm", method=RequestMethod.GET)
 	public String startAdditionalPayment(Model model, @RequestParam("id") String memberId, @RequestParam("lastName") String lastName, @RequestParam("paymentId") String paymentId) {
-		log.debug("Received request to start payment for member ID '{}' with last name '{}'", memberId, lastName);
+		log.debug("Received request to start payment ID '{}' for member ID '{}' with last name '{}'", paymentId, memberId, lastName);
 
 		Member member = retrieveMember(memberId, lastName);
 		MemberAdditionalPayment additionalPayment = memberAdditionalPaymentRepo.findOne(Long.parseLong(paymentId));
 		if(member != null && additionalPayment != null && member.getId() == additionalPayment.getMemberId()) {
-			if(additionalPayment.getMemberPaid()) {
+			log.debug("Payment info: {}", additionalPayment);
+			if(additionalPayment.getMemberPaid() != null && additionalPayment.getMemberPaid()) {
 				log.debug("Received request for additional payment, but member has already paid with payment ID {}", additionalPayment);
 				model.addAttribute("member", member);
 				return "additional-payment-already-paid";
@@ -711,7 +728,7 @@ public class ApplicationController {
 			throw new EmailSendException(e);
 		}
 	}
-	
+
 	@ExceptionHandler(EmailSendException.class)
 	@ResponseStatus(value=HttpStatus.I_AM_A_TEAPOT)
 	private Map<String, String> handleAcceptanceEmailException(EmailSendException e) {
