@@ -405,8 +405,8 @@ public class ApplicationController {
 
 		Member member = retrieveMember(memberId, lastName);
 		MemberAdditionalPayment additionalPayment = memberAdditionalPaymentRepo.findOne(Long.parseLong(paymentId));
-		if(member != null && additionalPayment != null && member.getId() == additionalPayment.getMemberId()) {
-			log.debug("Payment info: {}", additionalPayment);
+		log.debug("Payment info: {}", additionalPayment);
+		if(member != null && additionalPayment != null && member.getId().equals(additionalPayment.getMemberId())) {
 			if(additionalPayment.getMemberPaid() != null && additionalPayment.getMemberPaid()) {
 				log.debug("Received request for additional payment, but member has already paid with payment ID {}", additionalPayment);
 				model.addAttribute("member", member);
